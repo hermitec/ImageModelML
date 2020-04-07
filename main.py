@@ -5,7 +5,7 @@ import numpy as np
 import os, sys, time
 from tensorflow.keras.preprocessing import image
 
-
+#test
 # h,w must be divisible by 4
 h = 24
 w = 24
@@ -40,7 +40,7 @@ def model_vertex_creator():
     x = layers.Dense(24)(x)
     x = layers.Reshape((8,3))(x)
     model = tf.keras.models.Model(a_input,x)
-    return model 
+    return model
 
 def model_vertex_discriminator():
     global h,w,channels
@@ -49,7 +49,7 @@ def model_vertex_discriminator():
     x = layers.Flatten()(x)
     x = layers.Dropout(0.3)(x)                  # Without dropout on D, D will always outtrain G early
     x = layers.Dense(1, activation="sigmoid")(x)# and G will never learn how to trick D.
-    
+
     model = tf.keras.models.Model(b_input,x)
     return model
 
@@ -212,7 +212,7 @@ for i in out[0][0:]:
     f = open("out.obj","a+")
     print("v {0} {1} {2}\n".format(i[0],i[1],i[2]))
     f.write("v {0} {1} {2}\n".format(i[0],i[1],i[2]))
-    
+
 out = []
 for i in vertex_model.predict(np.array(raw_data[1]).reshape((1,6,w,h,channels))).tolist():
     out.append(i)
@@ -224,5 +224,3 @@ for i in out[0][0:]:
     f = open("out1.obj","a+")
     print("v {0} {1} {2}\n".format(i[0],i[1],i[2]))
     f.write("v {0} {1} {2}\n".format(i[0],i[1],i[2]))
-    
-    
