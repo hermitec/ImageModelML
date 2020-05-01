@@ -103,7 +103,7 @@ gan.compile(gan_optimizer,loss="binary_crossentropy")
 
 # TRAINING PARAMS #
 
-EPOCHS = 10000
+EPOCHS = 1000
 BATCH_SIZE = 1 # Currently useless, need to implement because GANs become
                # far easier to train the larger the batch size.
 
@@ -219,3 +219,11 @@ for i in out[0][0:]:
     f = open("final_out.obj","a+")
     print("v {0} {1} {2}\n".format(i[0],i[1],i[2]))
     f.write("v {0} {1} {2}\n".format(i[0],i[1],i[2]))
+
+f = open("final_out.obj","a+")
+f.write("""f 1/1/1 5/2/1 7/3/1 3/4/1
+f 4/5/2 3/4/2 7/6/2 8/7/2
+f 8/8/3 7/9/3 5/10/3 6/11/3
+f 6/12/4 2/13/4 4/5/4 8/14/4
+f 2/13/5 1/1/5 3/4/5 4/5/5
+f 6/11/6 5/10/6 1/1/6 2/13/6""")
