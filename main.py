@@ -82,7 +82,7 @@ with tf.device('/cpu:0'):
     BATCH_SIZE = 4
     current_index = 0
 
-    data_folder = raw_input("Input folder: ")
+    data_folder = input("Input folder: ")
     raw_data = []
     raw_labels = []
 
@@ -137,7 +137,7 @@ with tf.device('/cpu:0'):
     history = []
     # Actual training process:
 
-    training = raw_input("Perform training? y/n :")
+    training = input("Perform training? y/n :")
 
     if training == "y":
 
