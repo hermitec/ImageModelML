@@ -7,8 +7,8 @@ from tensorflow.keras.preprocessing import image
 
 #test
 # h,w must be divisible by 4
-h = 72
-w = 72
+h = 36
+w = 36
 channels = 1
 with tf.device('/cpu:0'):
 
@@ -79,7 +79,7 @@ with tf.device('/cpu:0'):
     # larger batch size exponentially improves GAN training...
     # but I dont have a supercomputer so it has to be kept relatively small
     # so my 8GB of ram can handle it
-    BATCH_SIZE = 4
+    BATCH_SIZE = 12
     current_index = 0
 
     data_folder = input("Input folder: ")
@@ -165,7 +165,7 @@ with tf.device('/cpu:0'):
 
             #... and train for another epoch
 
-            update_batch()
+            #update_batch()
             print(raw_data.shape)
             generated_objs = vertex_model.predict(raw_data, steps=1 )
             combined_obj = np.concatenate([generated_objs,raw_labels])
@@ -182,6 +182,7 @@ with tf.device('/cpu:0'):
             print(raw_labels[0])
             print("D LOSS: {0}".format(d_loss))
             print("GAN LOSS: {0}".format(a_loss))
+            print("EPOCH {}".format(i))
 
 
 
@@ -199,15 +200,19 @@ with tf.device('/cpu:0'):
     print(out)
     f = open("final_out.obj","w+")
     f.write("o Cube\n")
+    f.close()
     for i in out[0][0:]:
         f = open("final_out.obj","a+")
         print("v {0} {1} {2}\n".format(i[0],i[1],i[2]))
         f.write("v {0} {1} {2}\n".format(i[0],i[1],i[2]))
+        f.close()
 
+    print("HEllO")
     f = open("final_out.obj","a+")
     f.write("""f 1/1/1 5/2/1 7/3/1 3/4/1
-    f 4/5/2 3/4/2 7/6/2 8/7/2
-    f 8/8/3 7/9/3 5/10/3 6/11/3
-    f 6/12/4 2/13/4 4/5/4 8/14/4
-    f 2/13/5 1/1/5 3/4/5 4/5/5
-    f 6/11/6 5/10/6 1/1/6 2/13/6""")
+f 4/5/2 3/4/2 7/6/2 8/7/2
+f 8/8/3 7/9/3 5/10/3 6/11/3
+f 6/12/4 2/13/4 4/5/4 8/14/4
+f 2/13/5 1/1/5 3/4/5 4/5/5
+f 6/11/6 5/10/6 1/1/6 2/13/6""")
+    f.close()
