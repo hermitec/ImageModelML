@@ -7,10 +7,24 @@ from tensorflow.keras.preprocessing import image
 
 #test
 # h,w must be divisible by 4
-h = 36
-w = 36
+h = 50
+w = 50
 channels = 1
 with tf.device('/cpu:0'):
+
+    def Conv1DTranspose(input_tensor, filters, kernel_size, strides=2, padding='same'):
+        """
+            input_tensor: tensor, with the shape (batch_size, time_steps, dims)
+            filters: int, output dimension, i.e. the output tensor will have the shape of (batch_size, time_steps, filters)
+            kernel_size: int, size of the convolution kernel
+            strides: int, convolution step size
+            padding: 'same' | 'valid'
+        """
+        x = layers.Lambda(lambda x: tf.keras.backend.expand_dims(x, axis=0))(input_tensor)
+        x = layers.Lambda(lambda x: tf.keras.backend.expand_dims(x, axis=1))(x)
+        x = layers.Conv2DTranspose(filters=filters, kernel_size=(kernel_size, 1), strides=(strides, 1), padding=padding)(x)
+        x = layers.Lambda(lambda x: tf.keras.backend.squeeze(x, axis=0))(x)
+        return x
 
     def load_preprocess(path):
         global h,w,channels
@@ -31,7 +45,7 @@ with tf.device('/cpu:0'):
         x = layers.Dense(w*h*channels/4)(x)
         x = layers.BatchNormalization()(x)
         x = layers.Reshape((int(w/2),int(h/2),channels))(x)
-        x = layers.Conv2D(32,(3,3),activation="relu")(x)
+        x = layers.Conv2D(32,(2,2),activation="relu")(x)
         x = layers.LeakyReLU(alpha=0.1)(x)
         x = layers.Conv2D(32,(3,3),activation="relu")(x)
         x = layers.LeakyReLU(alpha=0.1)(x)
@@ -43,15 +57,30 @@ with tf.device('/cpu:0'):
         model = tf.keras.models.Model(a_input,x)
         return model
 
+
+# possible new architecture;
+
+# D1 -> Input(images) -> operations -> Some info about image
+# D2 -> Input(vertices) -> operations -> info about vertices in same form as output of D1
+# D3 -> Input(Output of D1/2) -> operations -> Binary out
+
     def model_vertex_discriminator():
         global h,w,channels
-        b_input = layers.Input(shape=(8,3))
-        x = layers.Conv1D(64,(1),activation="relu")(b_input)
-        x = layers.Flatten()(x)
-        x = layers.Dropout(0.35)(x)                  # Without dropout on D, D will always outtrain G early
-        x = layers.Dense(1, activation="sigmoid")(x)# and G will never learn how to trick D.
+        a_input = layers.Input(shape=(6,w,h,channels))
+        a = layers.Conv3D(32, (2,2,2), activation="relu")(a_input)
+        a = layers.Flatten()(a)
+        a = tf.keras.models.Model(a_input,a)
 
-        model = tf.keras.models.Model(b_input,x)
+        b_input = layers.Input(shape=(8,3))
+        b = layers.Conv1D(64,(1),1)(b_input)
+        b = layers.Flatten()(b)
+        b = tf.keras.models.Model(b_input,b)
+
+        z = layers.Concatenate()([a.output, b.output]) 
+        zm = layers.Dense(2, activation="relu")(z) 
+        zm = layers.Flatten()(zm)                      # Without dropout on D, D will always outtrain G early
+        zm = layers.Dense(1, activation="sigmoid")(zm)# and G will never learn how to trick D.
+        model = tf.keras.models.Model(z,zm)
         return model
 
     def parse(obj_file):
