@@ -1,6 +1,6 @@
 import tensorflow as tf
 tf.test.gpu_device_name()
-from tensorflow.keras import layers
+from tensorflow.keras import layers, backend
 import numpy as np
 import os, sys, time
 from tensorflow.keras.preprocessing import image
@@ -64,23 +64,34 @@ with tf.device('/cpu:0'):
 # D2 -> Input(vertices) -> operations -> info about vertices in same form as output of D1
 # D3 -> Input(Output of D1/2) -> operations -> Binary out
 
+    def D1():
+        global h,w,channels
+        d1_input = layers.Input(shape=(6,w,h,channels))
+        d1 = layers.Flatten()(d1_input)
+
     def model_vertex_discriminator():
         global h,w,channels
         a_input = layers.Input(shape=(6,w,h,channels))
         a = layers.Conv3D(32, (2,2,2), activation="relu")(a_input)
         a = layers.Flatten()(a)
+        a = layers.Dense(128)(a)
         a = tf.keras.models.Model(a_input,a)
 
         b_input = layers.Input(shape=(8,3))
         b = layers.Conv1D(64,(1),1)(b_input)
         b = layers.Flatten()(b)
+        b = layers.Dense(128)(b)
         b = tf.keras.models.Model(b_input,b)
 
-        z = layers.Concatenate()([a.output, b.output]) 
+        print(a.output_shape)
+        print(b.output_shape)
+        z = layers.Concatenate(axis=-1)([a.output,backend.cast(b.output,'float32')])
+        print(z.shape)
+        raw_input()
         zm = layers.Dense(2, activation="relu")(z) 
         zm = layers.Flatten()(zm)                      # Without dropout on D, D will always outtrain G early
         zm = layers.Dense(1, activation="sigmoid")(zm)# and G will never learn how to trick D.
-        model = tf.keras.models.Model(z,zm)
+        model = tf.keras.models.Model([a_input,b_input],zm)
         return model
 
     def parse(obj_file):
