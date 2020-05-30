@@ -5,7 +5,6 @@ import numpy as np
 import os, sys, time
 from tensorflow.keras.preprocessing import image
 
-#test
 # h,w must be divisible by 4
 h = 50
 w = 50
