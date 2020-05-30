@@ -83,14 +83,12 @@ with tf.device('/cpu:0'):
         b = layers.Dense(128)(b)
         b = tf.keras.models.Model(b_input,b)
 
-        print(a.output_shape)
-        print(b.output_shape)
+
         z = layers.Concatenate(axis=-1)([a.output,backend.cast(b.output,'float32')])
-        print(z.shape)
-        raw_input()
         zm = layers.Dense(2, activation="relu")(z) 
-        zm = layers.Flatten()(zm)                      # Without dropout on D, D will always outtrain G early
+        zm = layers.Flatten()(zm)                     # Without dropout on D, D will always outtrain G early
         zm = layers.Dense(1, activation="sigmoid")(zm)# and G will never learn how to trick D.
+        
         model = tf.keras.models.Model([a_input,b_input],zm)
         return model
 
@@ -150,8 +148,9 @@ with tf.device('/cpu:0'):
 
     # -- #
 
-    gan_input = tf.keras.Input(shape=(6,w,h,channels))
-    gan_output = vertex_discriminator(vertex_model(gan_input))
+    gan_input_1 = tf.keras.Input(shape=(6,w,h,channels))
+    gan_input_2 = tf.keras.Input(shape=(8,3))
+    gan_output = vertex_discriminator(vertex_model([gan_input_1, gan_input_2]))
     gan = tf.keras.models.Model(gan_input,gan_output)
     gan_optimizer = tf.keras.optimizers.Adam(lr=0.0002, clipvalue=1.0, decay=1e-8,beta_1=0.5)
     gan.compile(gan_optimizer,loss="binary_crossentropy")
