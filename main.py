@@ -9,7 +9,7 @@ from tensorflow.keras.preprocessing import image
 h = 50
 w = 50
 channels = 1
-with tf.device('/cpu:0'):
+with tf.device('/gpu:0'):
 
     def Conv1DTranspose(input_tensor, filters, kernel_size, strides=2, padding='same'):
         """
@@ -62,11 +62,6 @@ with tf.device('/cpu:0'):
 # D1 -> Input(images) -> operations -> Some info about image
 # D2 -> Input(vertices) -> operations -> info about vertices in same form as output of D1
 # D3 -> Input(Output of D1/2) -> operations -> Binary out
-
-    def D1():
-        global h,w,channels
-        d1_input = layers.Input(shape=(6,w,h,channels))
-        d1 = layers.Flatten()(d1_input)
 
     def model_vertex_discriminator():
         global h,w,channels
@@ -157,9 +152,7 @@ with tf.device('/cpu:0'):
 
     # TRAINING PARAMS #
 
-    EPOCHS = int(input("Epochs: ")) # Currently useless, need to implement because GANs become
-                                # far easier to train the larger the batch size.
-
+    EPOCHS = int(input("Epochs: "))
     history = []
 
     checkpoint_dir = './training_checkpoints'
