@@ -144,7 +144,7 @@ with tf.device('/gpu:0'):
 
     gan_input_1 = tf.keras.Input(shape=(6,w,h,channels))
     gan_input_2 = tf.keras.Input(shape=(8,3))
-    gan_output = vertex_discriminator(vertex_model([gan_input_1, gan_input_2]))
+    gan_output = vertex_discriminator([gan_input_1,vertex_model(gan_input_1)])
     gan = tf.keras.models.Model(gan_input,gan_output)
     gan_optimizer = tf.keras.optimizers.Adam(lr=0.0002, clipvalue=1.0, decay=1e-8,beta_1=0.5)
     gan.compile(gan_optimizer,loss="binary_crossentropy")
