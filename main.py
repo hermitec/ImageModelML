@@ -143,9 +143,9 @@ with tf.device('/gpu:0'):
     # -- #
 
     gan_input_1 = tf.keras.Input(shape=(6,w,h,channels))
-    gan_input_2 = tf.keras.Input(shape=(8,3))
-    gan_output = vertex_discriminator([gan_input_1,vertex_model(gan_input_1)])
-    gan = tf.keras.models.Model(gan_input,gan_output)
+    gan_input_2 = tf.keras.Input(shape=(6,w,h,channels))
+    gan_output = vertex_discriminator([gan_input_1,vertex_model(gan_input_2)])
+    gan = tf.keras.models.Model([gan_input_1,gan_input_2],gan_output)
     gan_optimizer = tf.keras.optimizers.Adam(lr=0.0002, clipvalue=1.0, decay=1e-8,beta_1=0.5)
     gan.compile(gan_optimizer,loss="binary_crossentropy")
 
@@ -197,14 +197,16 @@ with tf.device('/gpu:0'):
             #... and train for another epoch
 
             #update_batch()
-            print(raw_data.shape)
+            print(raw_data[0].shape)
             generated_objs = vertex_model.predict(raw_data, steps=1 )
             combined_obj = np.concatenate([generated_objs,raw_labels])
+            print(combined_obj.shape)
+            input()
 
             misleading_targets = np.ones((len(generated_objs),1))
             misleading_targets += -1 * np.random.random(misleading_targets.shape)
 
-            d_loss = vertex_discriminator.train_on_batch(combined_obj, np.concatenate([np.zeros((len(raw_labels))),np.ones((len(raw_labels)))]))
+            d_loss = vertex_discriminator.train_on_batch([raw_data[0],combined_obj], np.concatenate([np.zeros((len(raw_labels))),np.ones((len(raw_labels)))]))
             a_loss = gan.train_on_batch(raw_data,misleading_targets)
 
             history.append([d_loss,a_loss])
