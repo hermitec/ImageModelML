@@ -63,27 +63,33 @@ with tf.device('/gpu:0'):
 # D2 -> Input(vertices) -> operations -> info about vertices in same form as output of D1
 # D3 -> Input(Output of D1/2) -> operations -> Binary out
 
-    def model_vertex_discriminator():
+    def model_D1():
         global h,w,channels
         a_input = layers.Input(shape=(6,w,h,channels))
-        a = layers.Conv3D(32, (2,2,2), activation="relu")(a_input)
-        a = layers.Flatten()(a)
+       # a = layers.Conv3D(32, (2,2,2), activation="relu")(a_input)
+        a = layers.Flatten()(a_input)
         a = layers.Dense(128)(a)
         a = tf.keras.models.Model(a_input,a)
-
+        return a
+    
+    def model_D2():
+        global h,w,channels
         b_input = layers.Input(shape=(8,3))
-        b = layers.Conv1D(64,(1),1)(b_input)
-        b = layers.Flatten()(b)
+       # b = layers.Conv1D(64,(1),1)(b_input)
+        b = layers.Flatten()(b_input)
         b = layers.Dense(128)(b)
         b = tf.keras.models.Model(b_input,b)
-
-
-        z = layers.Concatenate(axis=-1)([a.output,backend.cast(b.output,'float32')])
-        zm = layers.Dense(2, activation="relu")(z) 
-        zm = layers.Flatten()(zm)                     # Without dropout on D, D will always outtrain G early
-        zm = layers.Dense(1, activation="sigmoid")(zm)# and G will never learn how to trick D.
+        return b
+    
+    def model_D3():
+        global h,w,channels
+        z_input = layers.Input(shape=(128,))
+        z2_input = layers.Input(shape=(128,))
+        zm = layers.Concatenate(axis=1)([z_input, z2_input])
+        zm = layers.Dense(128, activation="relu")(zm)               
+        zm = layers.Dense(1, activation="sigmoid")(zm)
         
-        model = tf.keras.models.Model([a_input,b_input],zm)
+        model = tf.keras.models.Model([z_input,z2_input],zm)
         return model
 
     def parse(obj_file):
@@ -100,12 +106,47 @@ with tf.device('/gpu:0'):
     vertex_model = model_vertex_creator()
     vertex_optimizer = tf.keras.optimizers.Adam(lr=0.00075, clipvalue=1.0, decay=1e-8,beta_1=0.5)
     vertex_model.compile(optimizer=vertex_optimizer,loss="binary_crossentropy")
-
-    vertex_discriminator = model_vertex_discriminator()
     d_optimizer = tf.keras.optimizers.Adam(lr=0.0005, clipvalue=1.0, decay=1e-8,beta_1=0.5)
-    vertex_discriminator.compile(optimizer=d_optimizer,loss="binary_crossentropy")
+    D1 = model_D1()
+    D2 = model_D2()
+    D3 = model_D3()
+    D1.compile(optimizer=d_optimizer,loss="binary_crossentropy")
+    D2.compile(optimizer=d_optimizer,loss="binary_crossentropy")
+    D3.compile(optimizer=d_optimizer,loss="binary_crossentropy")
+    D1_input = tf.keras.Input(shape=(6,w,h,channels))
+    D2_input = tf.keras.Input(shape=(8,3))
+    D3_inputs = tf.keras.Input(shape=(128))
+    # -- #
+
 
     # -- #
+
+    gan_output = D3([D3_inputs,D3_inputs])
+    gan = tf.keras.models.Model([D1(D1_input)],gan_output)
+    gan_optimizer = tf.keras.optimizers.Adam(lr=0.0002, clipvalue=1.0, decay=1e-8,beta_1=0.5)
+    gan.compile(gan_optimizer,loss="binary_crossentropy")
+
+
+    # TRAINING PARAMS #
+
+    EPOCHS = int(input("Epochs: "))
+    history = []
+
+    checkpoint_dir = './training_checkpoints'
+    checkpoint_prefix = os.path.join(checkpoint_dir, "ckpt")
+
+
+    checkpoint = tf.train.Checkpoint(vertex_model=vertex_model,
+                                    vertex_discriminator=vertex_discriminator,
+                                    gan=gan)
+
+    checkpoint.restore(tf.train.latest_checkpoint(checkpoint_dir))
+
+    history = []
+    
+    data_folder = input("Input folder: ")
+    raw_data = []
+    raw_labels = []
 
 
     # larger batch size exponentially improves GAN training...
@@ -113,10 +154,6 @@ with tf.device('/gpu:0'):
     # so my 8GB of ram can handle it
     BATCH_SIZE = 12
     current_index = 0
-
-    data_folder = input("Input folder: ")
-    raw_data = []
-    raw_labels = []
 
     def update_batch():
         global raw_data, raw_labels, data_folder, BATCH_SIZE,current_index
@@ -139,33 +176,6 @@ with tf.device('/gpu:0'):
 
     update_batch()
     print(raw_labels)
-
-    # -- #
-
-    gan_input_1 = tf.keras.Input(shape=(6,w,h,channels))
-    gan_input_2 = tf.keras.Input(shape=(6,w,h,channels))
-    gan_output = vertex_discriminator([gan_input_1,vertex_model(gan_input_2)])
-    gan = tf.keras.models.Model([gan_input_1,gan_input_2],gan_output)
-    gan_optimizer = tf.keras.optimizers.Adam(lr=0.0002, clipvalue=1.0, decay=1e-8,beta_1=0.5)
-    gan.compile(gan_optimizer,loss="binary_crossentropy")
-
-
-    # TRAINING PARAMS #
-
-    EPOCHS = int(input("Epochs: "))
-    history = []
-
-    checkpoint_dir = './training_checkpoints'
-    checkpoint_prefix = os.path.join(checkpoint_dir, "ckpt")
-
-
-    checkpoint = tf.train.Checkpoint(vertex_model=vertex_model,
-                                    vertex_discriminator=vertex_discriminator,
-                                    gan=gan)
-
-    checkpoint.restore(tf.train.latest_checkpoint(checkpoint_dir))
-
-    history = []
     # Actual training process:
 
     training = input("Perform training? y/n :")
@@ -197,8 +207,8 @@ with tf.device('/gpu:0'):
             #... and train for another epoch
 
             #update_batch()
-            print(raw_data[0].shape)
-            generated_objs = vertex_model.predict(raw_data, steps=1 )
+            print(raw_data.shape)
+            generated_objs = vertex_model.predict(raw_data, steps=1)
             combined_obj = np.concatenate([generated_objs,raw_labels])
             print(combined_obj.shape)
             input()
@@ -206,7 +216,7 @@ with tf.device('/gpu:0'):
             misleading_targets = np.ones((len(generated_objs),1))
             misleading_targets += -1 * np.random.random(misleading_targets.shape)
 
-            d_loss = vertex_discriminator.train_on_batch([raw_data[0],combined_obj], np.concatenate([np.zeros((len(raw_labels))),np.ones((len(raw_labels)))]))
+            d_loss = vertex_discriminator.train_on_batch([raw_data[0],combined_obj[0]], np.concatenate([np.zeros((len(raw_labels))),np.ones((len(raw_labels)))]))
             a_loss = gan.train_on_batch(raw_data,misleading_targets)
 
             history.append([d_loss,a_loss])
