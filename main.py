@@ -63,29 +63,26 @@ with tf.device('/gpu:0'):
 # D2 -> Input(vertices) -> operations -> info about vertices in same form as output of D1
 # D3 -> Input(Output of D1/2) -> operations -> Binary out
 
-    def model_D1():
+    
+    def model_D3():
         global h,w,channels
         a_input = layers.Input(shape=(6,w,h,channels))
        # a = layers.Conv3D(32, (2,2,2), activation="relu")(a_input)
         a = layers.Flatten()(a_input)
         a = layers.Dense(128)(a)
         a = tf.keras.models.Model(a_input,a)
-        return a
-    
-    def model_D2():
-        global h,w,channels
+
         b_input = layers.Input(shape=(8,3))
        # b = layers.Conv1D(64,(1),1)(b_input)
         b = layers.Flatten()(b_input)
         b = layers.Dense(128)(b)
         b = tf.keras.models.Model(b_input,b)
-        return b
-    
-    def model_D3():
-        global h,w,channels
-        z_input = layers.Input(shape=(128,))
-        z2_input = layers.Input(shape=(128,))
-        zm = layers.Concatenate(axis=1)([z_input, z2_input])
+
+        z_input = layers.Input(shape=(6,w,h,channels))
+        z2_input = layers.Input(shape=(8,3))
+        z1 = a(z_input)
+        z2 = b(z2_input)
+        zm = layers.Concatenate(axis=1)([z1,z2])
         zm = layers.Dense(128, activation="relu")(zm)               
         zm = layers.Dense(1, activation="sigmoid")(zm)
         
@@ -107,22 +104,15 @@ with tf.device('/gpu:0'):
     vertex_optimizer = tf.keras.optimizers.Adam(lr=0.00075, clipvalue=1.0, decay=1e-8,beta_1=0.5)
     vertex_model.compile(optimizer=vertex_optimizer,loss="binary_crossentropy")
     d_optimizer = tf.keras.optimizers.Adam(lr=0.0005, clipvalue=1.0, decay=1e-8,beta_1=0.5)
-    D1 = model_D1()
-    D2 = model_D2()
     D3 = model_D3()
-    D1.compile(optimizer=d_optimizer,loss="binary_crossentropy")
-    D2.compile(optimizer=d_optimizer,loss="binary_crossentropy")
     D3.compile(optimizer=d_optimizer,loss="binary_crossentropy")
     D1_input = tf.keras.Input(shape=(6,w,h,channels))
     D2_input = tf.keras.Input(shape=(8,3))
-    D3_inputs = tf.keras.Input(shape=(128))
     # -- #
 
 
-    # -- #
-
-    gan_output = D3([D3_inputs,D3_inputs])
-    gan = tf.keras.models.Model([D1(D1_input)],gan_output)
+    gan_output = D3([D1_input,D2_input])
+    gan = tf.keras.models.Model(([D1_input,D2_input]),gan_output)
     gan_optimizer = tf.keras.optimizers.Adam(lr=0.0002, clipvalue=1.0, decay=1e-8,beta_1=0.5)
     gan.compile(gan_optimizer,loss="binary_crossentropy")
 
