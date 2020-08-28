@@ -127,10 +127,16 @@ with tf.device('/gpu:0'):
 
 
     checkpoint = tf.train.Checkpoint(vertex_model=vertex_model,
-                                    vertex_discriminator=vertex_discriminator,
+                                    D3=D3,
                                     gan=gan)
 
-    checkpoint.restore(tf.train.latest_checkpoint(checkpoint_dir))
+
+# HELLO
+# DONT FORGET YOU COMMENTED THIS
+# I CAN TELL YOU'RE GOING TO FORGET AND BE CONFUSED WHY IT ISNT LOADING CHECKPOINTS LATER
+# YOU FUCKING COMMENTED IT
+# UNCOMMENT IT
+   # checkpoint.restore(tf.train.latest_checkpoint(checkpoint_dir))
 
     history = []
     
@@ -146,6 +152,8 @@ with tf.device('/gpu:0'):
     current_index = 0
 
     def update_batch():
+        # 8gb ram means manual batch loading
+        # i hope you find humour in my suffering
         global raw_data, raw_labels, data_folder, BATCH_SIZE,current_index
         raw_data = []
         raw_labels = []
@@ -197,25 +205,25 @@ with tf.device('/gpu:0'):
             #... and train for another epoch
 
             #update_batch()
-            print(raw_data.shape)
-            generated_objs = vertex_model.predict(raw_data, steps=1)
-            combined_obj = np.concatenate([generated_objs,raw_labels])
-            print(combined_obj.shape)
-            input()
+            for no in range(len(raw_data)):
+                #this is awful practice temporary terrible idea forces batchsize = 1
+                generated_objs = vertex_model.predict(raw_data, steps=1)
+                combined_obj = np.concatenate([generated_objs,raw_labels])
 
-            misleading_targets = np.ones((len(generated_objs),1))
-            misleading_targets += -1 * np.random.random(misleading_targets.shape)
+                misleading_targets = np.ones((len(generated_objs),1))
+                misleading_targets += -1 * np.random.random(misleading_targets.shape)
+                print("reached d train")
+                d_loss = D3.train_on_batch([raw_data[no].reshape(1,15000),combined_obj[no].reshape(1,24)], np.zeros(1))#np.concatenate([np.zeros(1),np.ones(1)]))
+                print("reached a train")
+                a_loss = gan.train_on_batch([raw_data[no].reshape(1,15000),combined_obj[no].reshape(1,24)],misleading_targets[0])
 
-            d_loss = vertex_discriminator.train_on_batch([raw_data[0],combined_obj[0]], np.concatenate([np.zeros((len(raw_labels))),np.ones((len(raw_labels)))]))
-            a_loss = gan.train_on_batch(raw_data,misleading_targets)
-
-            history.append([d_loss,a_loss])
-            os.system("clear")
-            print(vertex_model.predict(np.array(raw_data[0]).reshape((1,6,w,h,channels))))
-            print(raw_labels[0])
-            print("D LOSS: {0}".format(d_loss))
-            print("GAN LOSS: {0}".format(a_loss))
-            print("EPOCH {}".format(i))
+                history.append([d_loss,a_loss])
+                os.system("clear")
+                print(vertex_model.predict(np.array(raw_data[0]).reshape((1,6,w,h,channels))))
+                print(raw_labels[0])
+                print("D LOSS: {0}".format(d_loss))
+                print("GAN LOSS: {0}".format(a_loss))
+                print("EPOCH {}".format(i))
 
 
 
