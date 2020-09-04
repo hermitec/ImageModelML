@@ -212,11 +212,8 @@ with tf.device('/gpu:0'):
 
                 misleading_targets = np.ones((len(generated_objs),1))
                 misleading_targets += -1 * np.random.random(misleading_targets.shape)
-                print("reached d train")
                 d_loss = D3.train_on_batch([raw_data[no].reshape(1,15000),combined_obj[no].reshape(1,24)], np.zeros(1))#np.concatenate([np.zeros(1),np.ones(1)]))
-                print("reached a train")
-                a_loss = gan.train_on_batch([raw_data[no].reshape(1,15000),combined_obj[no].reshape(1,24)],misleading_targets[0])
-
+                a_loss = gan.train_on_batch([raw_data[no].reshape(1,15000),np.array(raw_labels[no]).reshape(1,24)],np.zeros(1))
                 history.append([d_loss,a_loss])
                 os.system("clear")
                 print(vertex_model.predict(np.array(raw_data[0]).reshape((1,6,w,h,channels))))
