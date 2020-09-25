@@ -207,8 +207,14 @@ with tf.device('/gpu:0'):
             #update_batch()
             for no in range(len(raw_data)):
                 #this is awful practice temporary terrible idea forces batchsize = 1
+
+                # TODO
+                # FIX
                 generated_objs = vertex_model.predict(raw_data, steps=1)
+                print(len(generated_objs))
                 combined_obj = np.concatenate([generated_objs,raw_labels])
+                #raw_data is raw images
+                #raw_labels is raw vertices
 
                 misleading_targets = np.ones((len(generated_objs),1))
                 misleading_targets += -1 * np.random.random(misleading_targets.shape)
