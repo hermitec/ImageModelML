@@ -66,27 +66,32 @@ with tf.device('/gpu:0'):
     
     def model_D3():
         global h,w,channels
-        a_input = layers.Input(shape=(6,w,h,channels))
-       # a = layers.Conv3D(32, (2,2,2), activation="relu")(a_input)
-        a = layers.Flatten()(a_input)
-        a = layers.Dense(128)(a)
-        a = tf.keras.models.Model(a_input,a)
+    #     a_input = layers.Input(shape=(6,w,h,channels))
+    #    # a = layers.Conv3D(32, (2,2,2), activation="relu")(a_input)
+    #     a = layers.Flatten()(a_input)
+    #     a = layers.Dense(128)(a)
+    #     a = tf.keras.models.Model(a_input,a)
 
-        b_input = layers.Input(shape=(8,3))
-       # b = layers.Conv1D(64,(1),1)(b_input)
-        b = layers.Flatten()(b_input)
-        b = layers.Dense(128)(b)
-        b = tf.keras.models.Model(b_input,b)
+    #     b_input = layers.Input(shape=(8,3))
+    #    # b = layers.Conv1D(64,(1),1)(b_input)
+    #     b = layers.Flatten()(b_input)
+    #     b = layers.Dense(128)(b)
+    #     b = tf.keras.models.Model(b_input,b)
 
-        z_input = layers.Input(shape=(6,w,h,channels))
-        z2_input = layers.Input(shape=(8,3))
-        z1 = a(z_input)
-        z2 = b(z2_input)
-        zm = layers.Concatenate(axis=1)([z1,z2])
-        zm = layers.Dense(128, activation="relu")(zm)               
-        zm = layers.Dense(1, activation="sigmoid")(zm)
+    #     z_input = layers.Input(shape=(6,w,h,channels))
+        # z2_input = layers.Input(shape=(8,3))
+        # z1 = a(z_input)
+        # z2 = b(z2_input)
+        # zm = layers.Concatenate(axis=1)([z1,z2])
+        # zm = layers.Dense(128, activation="relu")(zm)               
+        # zm = layers.Dense(1, activation="sigmoid")(zm)
         
-        model = tf.keras.models.Model([z_input,z2_input],zm)
+        # model = tf.keras.models.Model([z_input,z2_input],zm)
+        a_input = layers.Input(shape=(8,3))
+        a = layers.Flatten()(a_input)
+        a = layers.Dense(24)(a)
+        a = layers.Dense(1, activation = "sigmoid")(a)
+        model = tf.keras.models.Model(a_input,a)
         return model
 
     def parse(obj_file):
@@ -110,9 +115,9 @@ with tf.device('/gpu:0'):
     D2_input = tf.keras.Input(shape=(8,3))
     # -- #
 
-
-    gan_output = D3([D1_input,D2_input])
-    gan = tf.keras.models.Model(([D1_input,D2_input]),gan_output)
+    gan_input = tf.keras.Input(shape=(6,w,h,channels))
+    gan_output = D3(vertex_model(gan_input))
+    gan = tf.keras.models.Model(gan_input,gan_output)
     gan_optimizer = tf.keras.optimizers.Adam(lr=0.0002, clipvalue=1.0, decay=1e-8,beta_1=0.5)
     gan.compile(gan_optimizer,loss="binary_crossentropy")
 
@@ -180,62 +185,73 @@ with tf.device('/gpu:0'):
 
     if training == "y":
 
-        for i in range(EPOCHS):
+            for i in range(EPOCHS):
 
-            if i % 100 == 0:
+                if i % 100 == 0:
 
-                # Save progress
-                checkpoint.save(file_prefix = checkpoint_prefix)
+                    # Save progress
+                    checkpoint.save(file_prefix = checkpoint_prefix)
 
-                out = []
-                for x in vertex_model.predict(np.array(raw_data[0]).reshape((1,6,w,h,channels))).tolist():
-                    out.append(x)
-                out_str = "./Output/out_at_epoch_{}.obj".format(i)
-                print(out)
+                    out = []
+                    for x in vertex_model.predict(np.array(raw_data[0]).reshape((1,6,w,h,channels))).tolist():
+                        out.append(x)
+                    out_str = "./Output/out_at_epoch_{}.obj".format(i)
+                    print(out)
 
-                # Save current predictions of G
-                f = open(out_str,"w+")
-                f.write("o Cube\n")
-                for x in out[0][0:]:
-                    f = open(out_str,"a+")
-                    print("v {0} {1} {2}\n".format(x[0],x[1],x[2]))
-                    f.write("v {0} {1} {2}\n".format(x[0],x[1],x[2]))
+                    # Save current predictions of G
+                    f = open(out_str,"w+")
+                    f.write("o Cube\n")
+                    for x in out[0][0:]:
+                        f = open(out_str,"a+")
+                        print("v {0} {1} {2}\n".format(x[0],x[1],x[2]))
+                        f.write("v {0} {1} {2}\n".format(x[0],x[1],x[2]))
 
 
-            #... and train for another epoch
+                #... and train for another epoch
 
-            #update_batch()
-            for no in range(len(raw_data)):
-                #this is awful practice temporary terrible idea forces batchsize = 1
-
-                # TODO
-                # FIX
+                # right now all data is trained every batch which is an absolutely
+                # awful idea
                 generated_objs = vertex_model.predict(raw_data, steps=1)
-                print(len(generated_objs))
                 combined_obj = np.concatenate([generated_objs,raw_labels])
-                #raw_data is raw images
-                #raw_labels is raw vertices
 
                 misleading_targets = np.ones((len(generated_objs),1))
                 misleading_targets += -1 * np.random.random(misleading_targets.shape)
-                d_loss = D3.train_on_batch([raw_data[no].reshape(1,15000),combined_obj[no].reshape(1,24)], np.zeros(1))#np.concatenate([np.zeros(1),np.ones(1)]))
-                a_loss = gan.train_on_batch([raw_data[no].reshape(1,15000),np.array(raw_labels[no]).reshape(1,24)],np.zeros(1))
+
+                d_loss = D3.train_on_batch(combined_obj, np.concatenate([np.zeros((len(raw_labels))),np.ones((len(raw_labels)))]))
+                a_loss = gan.train_on_batch(raw_data,misleading_targets)
+
                 history.append([d_loss,a_loss])
                 os.system("clear")
                 print(vertex_model.predict(np.array(raw_data[0]).reshape((1,6,w,h,channels))))
                 print(raw_labels[0])
                 print("D LOSS: {0}".format(d_loss))
                 print("GAN LOSS: {0}".format(a_loss))
-                print("EPOCH {}".format(i))
+
+
+            # #update_batch()
+            # for no in range(len(raw_data)):
+            #     #this is awful practice temporary terrible idea forces batchsize = 1
+
+            #     # TODO
+            #     # FIX
+            #     generated_objs = vertex_model.predict(raw_data, steps=1)
+            #     combined_obj = np.concatenate([generated_objs,raw_labels])
+            #     #raw_data is raw images
+            #     #raw_labels is raw vertices
+
+            #     misleading_targets = np.ones((len(generated_objs),1))
+            #     misleading_targets += -1 * np.random.random(misleading_targets.shape)
+            #     d_loss = D3.train_on_batch([raw_data[no].reshape(1,15000),combined_obj[no].reshape(1,24)], np.zeros(1))#np.concatenate([np.zeros(1),np.ones(1)]))
+            #     a_loss = gan.train_on_batch([raw_data[no].reshape(1,15000),np.array(raw_labels[no]).reshape(1,24)],np.zeros(1))
 
 
 
-        # -- Saving data after the fact -- #
+            # -- Saving data after the fact -- #
 
-        f = open("graph_raw.txt","w+")
-        for l in [(str(history[x][0])+","+str(history[x][1])+";\n") for x,i in enumerate(history)]:
-            f = open("graph_raw.txt","a+")
-            f.write(l)
+            f = open("graph_raw.txt","w+")
+            for l in [(str(history[x][0])+","+str(history[x][1])+";\n") for x,i in enumerate(history)]:
+                f = open("graph_raw.txt","a+")
+                f.write(l)
 
     out = []
     for i in vertex_model.predict(np.array(raw_data[0]).reshape((1,6,w,h,channels))).tolist():
