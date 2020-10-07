@@ -87,8 +87,9 @@ with tf.device('/gpu:0'):
         # zm = layers.Dense(1, activation="sigmoid")(zm)
         
         # model = tf.keras.models.Model([z_input,z2_input],zm)
-        a_input = layers.Input(shape=(8,3))
-        a = layers.Flatten()(a_input)
+        a_input = layers.Input(shape=((8,3)))
+        a = layers.Conv1D(32, 2, activation="relu")(a_input)
+        a = layers.Flatten()(a)
         a = layers.Dense(24)(a)
         a = layers.Dense(1, activation = "sigmoid")(a)
         model = tf.keras.models.Model(a_input,a)
@@ -178,7 +179,16 @@ with tf.device('/gpu:0'):
         else: current_index += BATCH_SIZE
 
     update_batch()
-    print(raw_labels)
+
+    def merge():
+        global raw_data, raw_labels, BATCH_SIZE
+        raw_data = np.reshape(raw_data, (BATCH_SIZE,6*w*h*channels))
+        raw_labels = np.reshape(raw_labels,(BATCH_SIZE,8*3))
+        raw_out = np.concatenate([raw_labels,raw_data])
+        return raw_out
+
+    #raw_merged = merge()
+
     # Actual training process:
 
     training = input("Perform training? y/n :")
