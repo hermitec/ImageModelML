@@ -1,5 +1,6 @@
 <?php
     
+    echo "hi";
     include 'libraries.php';
     include 'webhooks.php';
     session_start();
