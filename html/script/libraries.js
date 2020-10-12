@@ -38,7 +38,7 @@ async function log_in() {
 
     const loginHTTPReq = new XMLHttpRequest(),
         method = "POST",
-        url = "/script/login",
+        url = "/var/www/html/script/login",
         params = "user=" + user + "&pw=" + pw;
 
     loginHTTPReq.open( method, url, true );
