@@ -16,13 +16,11 @@
 
     while ( $row = mysqli_fetch_array( $results )  ) {
         if ( $row[0] == $username && $row[1] == $password ){
-            send_login_attempt_webhook( $username, true );
             $_SESSION["loggedin"] = 1;
             echo $_SESSION["loggedin"];
             exit();
         } else {
             $_SESSION["loggedin"] = 0;
-            send_login_attempt_webhook( $username, false );
         }
     }
 
