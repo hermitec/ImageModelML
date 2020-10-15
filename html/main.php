@@ -9,8 +9,10 @@
     $_SESSION["user"] = $username;
     $_SESSION["loggedin"] = 0;
 
-    include 'sql.php';
-    $results = $db -> query( "SELECT * FROM Users" );
+    $config = include( "config.php" );
+    $db = mysqli_connect( $config["database"]["host"], $config["database"]["user"], $config["database"]["password"], $config["database"]["name"] );
+
+    $results = $db -> query( "SELECT * FROM login" );
 
     while ( $row = mysqli_fetch_array( $results )  ) {
         if ( $row[0] == $username && $row[1] == $password ){
