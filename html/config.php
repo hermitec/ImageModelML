@@ -2,7 +2,7 @@
     return [
         "database" => [
             "host" => "localhost:3306",
-            "name" => "login_info",
+            "name" => "login",
             "user" => "root",
             "password" => ""
         ]
