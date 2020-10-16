@@ -9,8 +9,7 @@
     $_SESSION["user"] = $username;
     $_SESSION["loggedin"] = 0;
 
-    $config = include( "config.php" );
-    $db = mysqli_connect( $config["database"]["host"], $config["database"]["user"], $config["database"]["password"], $config["database"]["name"] );
+    include 'sql.php';
     if(!$db){echo"bruh";exit();}
 
     $results = $db -> query( "SELECT * FROM login" );

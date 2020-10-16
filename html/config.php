@@ -1,10 +1,10 @@
 <?php
     return [
         "database" => [
-            "host" => "localhost:3306",
+            "host" => "localhost",
             "name" => "login",
-            "user" => "root",
-            "password" => ""
+            "user" => "newuser",
+            "password" => "password"
         ]
     ];
 ?>
