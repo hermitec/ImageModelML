@@ -46,7 +46,7 @@ async function log_in() {
     loginHTTPReq.onreadystatechange = function() {
         console.log( this.responseText );
         if( this.readyState == 4 && this.status == 200 ) {
-            if( this.responseText == 1 ) window.location.href = "../main.php";
+            if( this.responseText == 1 ) window.location.href = "../mainsite.html";
             else{ document.getElementById( "errorText" ).innerHTML = "Incorrect credentials." }
         }
     }
