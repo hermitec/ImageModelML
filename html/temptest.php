@@ -1,6 +1,6 @@
 <?php
     $config = include( "config.php" );
-    $db = mysqli_connect( "localhost:3306", "root", "", "login" );
+    $db = mysqli_connect( "localhost", "newuser", "password:", "login" );
     if($db == FALSE){
         echo "DATABASE DEAD";
         exit();
