@@ -37,6 +37,14 @@ if($_SESSION["loggedin"] != 1){header("http://18.222.183.14/");exit();}
                         <label for="y2">Y-2</label>
                         <input type="image" class="form-control" id="y2" placeholder="Enter password" name="password">
                     </div>
+                    <div class="form-group">
+                        <label for="y1">Z-1</label>
+                        <input type="image" class="form-control" id="y1" placeholder="Enter username" name="username">
+                    </div>
+                    <div class="form-group">
+                        <label for="y2">Z-2</label>
+                        <input type="image" class="form-control" id="y2" placeholder="Enter password" name="password">
+                    </div>
                     <a href="#" class="btn btn-primary" style="width:100%;" onclick="log_in()">Submit</a>
                     <p id="errorText" style="color:red; text-align: center;"></p>
                 </div>
