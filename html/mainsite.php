@@ -22,11 +22,11 @@ if($_SESSION["loggedin"] != 1){header("http://18.222.183.14/");exit();}
                 <div class="card-body">
                     <div class="form-group">
                         <label for="username">X-1</label>
-                        <input type="image" class="form-control" id="x1" placeholder="Enter username" name="username">
+                        <input type="file" class="form-control" id="x1" placeholder="Enter username" name="username">
                     </div>
                     <div class="form-group">
                         <label for="password">X-2</label>
-                        <input type="image" class="form-control" id="password" placeholder="Enter password" name="password">
+                        <input type="file" class="form-control" id="password" placeholder="Enter password" name="password">
                     </div>
                     <p id="errorText" style="color:red; text-align: center;"></p>
                     <div class="form-group">
