@@ -52,3 +52,17 @@ async function log_in() {
     }
     loginHTTPReq.send( params );
 }
+
+async function model_compute(){
+    var success = 0;
+    const loginHTTPReq = new XMLHttpRequest(),
+        method="POST",
+        url="/getmodel.php"
+
+        loginHTTPReq.open( method, url, true );
+    loginHTTPReq.setRequestHeader( "Content-type", "application/x-www-form-urlencoded" );
+    loginHTTPReq.onreadystatechange = function() {
+        console.log( this.responseText );
+    }
+    loginHTTPReq.send( params );
+}

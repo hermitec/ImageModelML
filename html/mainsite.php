@@ -22,11 +22,11 @@ if($_SESSION["loggedin"] != 1){header("http://18.222.183.14/");exit();}
                 <div class="card-body">
                     <div class="form-group">
                         <label for="username">X-1</label>
-                        <input type="file" class="form-control" id="x1" placeholder="Enter username" name="username">
+                        <input type="file" class="form-control" id="x1"name="x1">
                     </div>
                     <div class="form-group">
                         <label for="password">X-2</label>
-                        <input type="file" class="form-control" id="password" placeholder="Enter password" name="password">
+                        <input type="file" class="form-control" id="x2" name="x2">
                     </div>
                     <p id="errorText" style="color:red; text-align: center;"></p>
                     <div class="form-group">
@@ -45,7 +45,7 @@ if($_SESSION["loggedin"] != 1){header("http://18.222.183.14/");exit();}
                         <label for="y2">Z-2</label>
                         <input type="file" class="form-control" id="y2">
                     </div>
-                    <a href="#" class="btn btn-primary" style="width:100%;" onclick="log_in()">Submit</a>
+                    <a href="#" class="btn btn-primary" style="width:100%;" onclick="model_compute()">Submit</a>
                     <p id="errorText" style="color:red; text-align: center;"></p>
                 </div>
             </div>
