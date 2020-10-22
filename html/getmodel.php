@@ -1,3 +1,5 @@
 <?php
-return shell_exec("echo 'This feature still under contruction!'")
+shell_exec("python3 serversideout.py");
+echo "hi";
+exit();
 ?>
