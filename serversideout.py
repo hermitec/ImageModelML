@@ -18,4 +18,6 @@ with tf.device('/gpu:0'):
                                     D3=D3,
                                     gan=gan)
     
-    
+    f = open("testfile.txt","w+")
+    f.writelines("aaaaaaaaaaaaa")
+    f.close()
