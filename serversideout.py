@@ -1,3 +1,3 @@
-f = open("testfile.txt","w+")
-f.writelines("aaaaaaaaaaaaa")
+f = open("testfile.txt","a+")
+f.write("aaaaaaaaaaaaa")
 f.close()
