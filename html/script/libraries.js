@@ -64,5 +64,5 @@ async function model_compute(){
     loginHTTPReq.onreadystatechange = function() {
         console.log( this.responseText );
     }
-    loginHTTPReq.send( params );
+    loginHTTPReq.send(  );
 }

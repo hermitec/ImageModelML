@@ -17,3 +17,5 @@ with tf.device('/gpu:0'):
     checkpoint = tf.train.Checkpoint(vertex_model=vertex_model,
                                     D3=D3,
                                     gan=gan)
+    
+    
