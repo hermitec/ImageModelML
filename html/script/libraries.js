@@ -61,7 +61,7 @@ async function model_compute(){
 
         loginHTTPReq.open( method, url, true );
     loginHTTPReq.setRequestHeader('Content-Description', 'File Transfer');
-    loginHTTPReq.setRequestHeader( "Content-type", "application/octet-stream" );
+    loginHTTPReq.setRequestHeader( "Content-Type", "text/html; charset=UTF-8" );
     loginHTTPReq.onreadystatechange = function() {
         console.log( this.responseText );
     }
