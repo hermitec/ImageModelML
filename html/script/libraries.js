@@ -60,7 +60,8 @@ async function model_compute(){
         url="/getmodel.php"
 
         loginHTTPReq.open( method, url, true );
-    loginHTTPReq.setRequestHeader( "Content-type", "application/x-www-form-urlencoded" );
+    loginHTTPReq.setRequestHeader('Content-Description', 'File Transfer');
+    loginHTTPReq.setRequestHeader( "Content-type", "application/octet-stream" );
     loginHTTPReq.onreadystatechange = function() {
         console.log( this.responseText );
     }
