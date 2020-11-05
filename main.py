@@ -88,9 +88,9 @@ with tf.device('/gpu:0'):
         
         # model = tf.keras.models.Model([z_input,z2_input],zm)
         a_input = layers.Input(shape=((8,3)))
-        a = layers.Conv1D(32, 2, activation="relu")(a_input)
+        a = layers.Conv1D(256, 2, activation="relu")(a_input)
+        a = layers.Conv1D(256, 2, activation="relu")(a)
         a = layers.Flatten()(a)
-        a = layers.Dense(24)(a)
         a = layers.Dense(1, activation = "sigmoid")(a)
         model = tf.keras.models.Model(a_input,a)
         return model
@@ -180,14 +180,15 @@ with tf.device('/gpu:0'):
 
     update_batch()
 
-    def merge():
-        global raw_data, raw_labels, BATCH_SIZE
-        raw_data = np.reshape(raw_data, (BATCH_SIZE,6*w*h*channels))
-        raw_labels = np.reshape(raw_labels,(BATCH_SIZE,8*3))
-        raw_out = np.concatenate([raw_labels,raw_data])
-        return raw_out
+    def merge(a,b):
+        global BATCH_SIZE
+        raw_data = np.reshape(a, (BATCH_SIZE,6*w*h*channels))
+        raw_labels = np.reshape(b,(BATCH_SIZE,8*3))
+        raw_out = np.concatenate([raw_labels,raw_data],axis=-1)
+        print(raw_out.shape)
+        input("aaa")
 
-    #raw_merged = merge()
+    raw_merged = merge()
 
     # Actual training process:
 
@@ -222,6 +223,7 @@ with tf.device('/gpu:0'):
                 # right now all data is trained every batch which is an absolutely
                 # awful idea
                 generated_objs = vertex_model.predict(raw_data, steps=1)
+                generated_objs = np.
                 combined_obj = np.concatenate([generated_objs,raw_labels])
 
                 misleading_targets = np.ones((len(generated_objs),1))
@@ -277,7 +279,6 @@ with tf.device('/gpu:0'):
         f.write("v {0} {1} {2}\n".format(i[0],i[1],i[2]))
         f.close()
 
-    print("HEllO")
     f = open("final_out.obj","a+")
     f.write("""f 1/1/1 5/2/1 7/3/1 3/4/1
 f 4/5/2 3/4/2 7/6/2 8/7/2
