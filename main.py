@@ -101,7 +101,8 @@ with tf.device('/gpu:0'):
         
         # model = tf.keras.models.Model([z_input,z2_input],zm)
         a_input = layers.Input(shape=((15024,)))
-        a = layers.Dense(256, activation="relu")(a_input)
+        a = layers.Dense(128, activation="relu")(a_input)
+        a = layers.Dropout(0.05)(a)
         a = layers.Flatten()(a)
         a = layers.Dense(1, activation = "sigmoid")(a)
         model = tf.keras.models.Model(a_input,a)
@@ -188,8 +189,6 @@ with tf.device('/gpu:0'):
     update_batch()
 
     raw_merged = merge(raw_data, raw_labels)
-    print(raw_merged.shape)
-    input("A")
 
     # Actual training process:
 
@@ -213,10 +212,12 @@ with tf.device('/gpu:0'):
                     # Save current predictions of G
                     f = open(out_str,"w+")
                     f.write("o Cube\n")
-                    for x in out[0][0:]:
-                        f = open(out_str,"a+")
-                        print("v {0} {1} {2}\n".format(x[0],x[1],x[2]))
-                        f.write("v {0} {1} {2}\n".format(x[0],x[1],x[2]))
+                    cindex = 15000
+                    f = open(out_str,"a+")
+                    out = np.array(out)
+                    input()
+                    print("v {0} {1} {2}\n".format(out[0][cindex],out[0][cindex+1],out[0][cindex+2]))
+                    f.write("v {0} {1} {2}\n".format(out[0][cindex],out[0][cindex+1],out[0][cindex+2]))
 
 
                 #... and train for another epoch
@@ -224,7 +225,6 @@ with tf.device('/gpu:0'):
                 # right now all data is trained every batch which is an absolutely
                 # awful idea
                 generated_objs = vertex_model.predict(raw_data, steps=1)
-                generated = merge(raw_data, generated_objs)
                 combined_obj = np.concatenate([generated_objs,raw_merged])
 
                 misleading_targets = np.ones((len(generated_objs),1))
@@ -272,11 +272,15 @@ with tf.device('/gpu:0'):
     f = open("final_out.obj","w+")
     f.write("o Cube\n")
     f.close()
-    for i in out[0][0:]:
-        f = open("final_out.obj","a+")
-        print("v {0} {1} {2}\n".format(i[0],i[1],i[2]))
-        f.write("v {0} {1} {2}\n".format(i[0],i[1],i[2]))
-        f.close()
+    cindex = 15000
+    ticker = 0
+    f = open("final_out.obj","a+")
+    while ticker < 8:
+        print("v {0} {1} {2}\n".format(out[0][cindex],out[0][cindex+1],out[0][cindex+2]))
+        f.write("v {0} {1} {2}\n".format(out[0][cindex],out[0][cindex+1],out[0][cindex+2]))
+        cindex+=3
+        ticker+=1
+    f.close()
 
     f = open("final_out.obj","a+")
     f.write("""f 1/1/1 5/2/1 7/3/1 3/4/1
