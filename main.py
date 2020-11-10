@@ -9,7 +9,21 @@ from tensorflow.keras.preprocessing import image
 h = 50
 w = 50
 channels = 1
+
+# larger batch size exponentially improves GAN training...
+# but I dont have a supercomputer so it has to be kept relatively small
+# so my 8GB of ram can handle it
+BATCH_SIZE = 12
+
 with tf.device('/gpu:0'):
+
+
+    def merge(a,b):
+        global BATCH_SIZE
+        raw_data = np.reshape(a, (BATCH_SIZE,6*w*h*channels))
+        raw_labels = np.reshape(b,(BATCH_SIZE,8*3))
+        raw_out = np.concatenate([raw_labels,raw_data],axis=-1)
+        return raw_out
 
     def Conv1DTranspose(input_tensor, filters, kernel_size, strides=2, padding='same'):
         """
@@ -40,8 +54,8 @@ with tf.device('/gpu:0'):
 
         global h,w,channels
         a_input = layers.Input(shape=(6,w,h,channels))
-        x = layers.Flatten()(a_input)
-        x = layers.Dense(w*h*channels/4)(x)
+        y = layers.Flatten()(a_input)
+        x = layers.Dense(w*h*channels/4)(y)
         x = layers.BatchNormalization()(x)
         x = layers.Reshape((int(w/2),int(h/2),channels))(x)
         x = layers.Conv2D(32,(2,2),activation="relu")(x)
@@ -52,8 +66,7 @@ with tf.device('/gpu:0'):
         x = layers.LeakyReLU(alpha=0.1)(x)
         x = layers.Flatten()(x)
         x = layers.Dense(24)(x)
-        x = layers.Reshape((8,3))(x)
-        model = tf.keras.models.Model(a_input,x)
+        model = tf.keras.models.Model(a_input,tf.concat([x,y],-1))
         return model
 
 
@@ -67,13 +80,13 @@ with tf.device('/gpu:0'):
     def model_D3():
         global h,w,channels
     #     a_input = layers.Input(shape=(6,w,h,channels))
-    #    # a = layers.Conv3D(32, (2,2,2), activation="relu")(a_input)
+    #     a = layers.Conv3D(32, (2,2,2), activation="relu")(a_input)
     #     a = layers.Flatten()(a_input)
     #     a = layers.Dense(128)(a)
     #     a = tf.keras.models.Model(a_input,a)
 
     #     b_input = layers.Input(shape=(8,3))
-    #    # b = layers.Conv1D(64,(1),1)(b_input)
+    #     b = layers.Conv1D(64,(1),1)(b_input)
     #     b = layers.Flatten()(b_input)
     #     b = layers.Dense(128)(b)
     #     b = tf.keras.models.Model(b_input,b)
@@ -87,9 +100,8 @@ with tf.device('/gpu:0'):
         # zm = layers.Dense(1, activation="sigmoid")(zm)
         
         # model = tf.keras.models.Model([z_input,z2_input],zm)
-        a_input = layers.Input(shape=((8,3)))
-        a = layers.Conv1D(256, 2, activation="relu")(a_input)
-        a = layers.Conv1D(256, 2, activation="relu")(a)
+        a_input = layers.Input(shape=((15024,)))
+        a = layers.Dense(256, activation="relu")(a_input)
         a = layers.Flatten()(a)
         a = layers.Dense(1, activation = "sigmoid")(a)
         model = tf.keras.models.Model(a_input,a)
@@ -113,7 +125,7 @@ with tf.device('/gpu:0'):
     D3 = model_D3()
     D3.compile(optimizer=d_optimizer,loss="binary_crossentropy")
     D1_input = tf.keras.Input(shape=(6,w,h,channels))
-    D2_input = tf.keras.Input(shape=(8,3))
+    D2_input = tf.keras.Input(shape=(15024))
     # -- #
 
     gan_input = tf.keras.Input(shape=(6,w,h,channels))
@@ -150,11 +162,6 @@ with tf.device('/gpu:0'):
     raw_data = []
     raw_labels = []
 
-
-    # larger batch size exponentially improves GAN training...
-    # but I dont have a supercomputer so it has to be kept relatively small
-    # so my 8GB of ram can handle it
-    BATCH_SIZE = 12
     current_index = 0
 
     def update_batch():
@@ -180,15 +187,9 @@ with tf.device('/gpu:0'):
 
     update_batch()
 
-    def merge(a,b):
-        global BATCH_SIZE
-        raw_data = np.reshape(a, (BATCH_SIZE,6*w*h*channels))
-        raw_labels = np.reshape(b,(BATCH_SIZE,8*3))
-        raw_out = np.concatenate([raw_labels,raw_data],axis=-1)
-        print(raw_out.shape)
-        input("aaa")
-
-    raw_merged = merge()
+    raw_merged = merge(raw_data, raw_labels)
+    print(raw_merged.shape)
+    input("A")
 
     # Actual training process:
 
@@ -223,8 +224,8 @@ with tf.device('/gpu:0'):
                 # right now all data is trained every batch which is an absolutely
                 # awful idea
                 generated_objs = vertex_model.predict(raw_data, steps=1)
-                generated_objs = np.
-                combined_obj = np.concatenate([generated_objs,raw_labels])
+                generated = merge(raw_data, generated_objs)
+                combined_obj = np.concatenate([generated_objs,raw_merged])
 
                 misleading_targets = np.ones((len(generated_objs),1))
                 misleading_targets += -1 * np.random.random(misleading_targets.shape)
@@ -234,8 +235,6 @@ with tf.device('/gpu:0'):
 
                 history.append([d_loss,a_loss])
                 os.system("clear")
-                print(vertex_model.predict(np.array(raw_data[0]).reshape((1,6,w,h,channels))))
-                print(raw_labels[0])
                 print("D LOSS: {0}".format(d_loss))
                 print("GAN LOSS: {0}".format(a_loss))
 
