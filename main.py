@@ -5,7 +5,7 @@ import numpy as np
 import os, sys, time
 from tensorflow.keras.preprocessing import image
 
-# h,w must be divisible by 4
+# h,w must be divisible by 4 (for convolutions)
 h = 50
 w = 50
 channels = 1
@@ -62,8 +62,6 @@ with tf.device('/gpu:0'):
         x = layers.LeakyReLU(alpha=0.1)(x)
         x = layers.Conv2D(32,(3,3),activation="relu")(x)
         x = layers.LeakyReLU(alpha=0.1)(x)
-        x = layers.Conv2D(32,(3,3),activation="relu")(x)
-        x = layers.LeakyReLU(alpha=0.1)(x)
         x = layers.Flatten()(x)
         x = layers.Dense(24)(x)
         model = tf.keras.models.Model(a_input,tf.concat([x,y],-1))
@@ -100,8 +98,14 @@ with tf.device('/gpu:0'):
         # zm = layers.Dense(1, activation="sigmoid")(zm)
         
         # model = tf.keras.models.Model([z_input,z2_input],zm)
-        a_input = layers.Input(shape=((15024,)))
-        a = layers.Dense(128, activation="relu")(a_input)
+        a_input = layers.Input(shape=(((6*w*h*channels)+24,)))
+        b = a_input[6*w*h*channels:]
+        a = a_input[:6*w*h*channels]
+        print(a)
+        input()
+        a = layers.Dense(128, activation="relu")(a)
+        b = layers.Dense(16, activation="relu")(b)
+        a = tf.concat([a,b],axis=-1)
         a = layers.Dropout(0.05)(a)
         a = layers.Flatten()(a)
         a = layers.Dense(1, activation = "sigmoid")(a)
@@ -126,11 +130,11 @@ with tf.device('/gpu:0'):
     D3 = model_D3()
     D3.compile(optimizer=d_optimizer,loss="binary_crossentropy")
     D1_input = tf.keras.Input(shape=(6,w,h,channels))
-    D2_input = tf.keras.Input(shape=(15024))
+    D2_input = tf.keras.Input(shape=((8,3)))
     # -- #
 
     gan_input = tf.keras.Input(shape=(6,w,h,channels))
-    gan_output = D3(vertex_model(gan_input))
+    gan_output = D3(vertex_model(gan_input))   
     gan = tf.keras.models.Model(gan_input,gan_output)
     gan_optimizer = tf.keras.optimizers.Adam(lr=0.0002, clipvalue=1.0, decay=1e-8,beta_1=0.5)
     gan.compile(gan_optimizer,loss="binary_crossentropy")
@@ -181,7 +185,9 @@ with tf.device('/gpu:0'):
                 objdir = [data_folder+i+"/"+p for p in os.listdir(data_folder+i) if p.split(".")[1] == "obj"]
                 obj = parse(objdir[0])
                 raw_labels.append(obj)
+
         raw_data = np.reshape(raw_data, (BATCH_SIZE,6,h,w,channels))
+        print(raw_data[0])
         if(current_index + BATCH_SIZE >= len(os.listdir(data_folder))):
             current_index = 0
         else: current_index += BATCH_SIZE
@@ -212,7 +218,7 @@ with tf.device('/gpu:0'):
                     # Save current predictions of G
                     f = open(out_str,"w+")
                     f.write("o Cube\n")
-                    cindex = 15000
+                    cindex = 6*h*w*channels
                     f = open(out_str,"a+")
                     out = np.array(out)
                     input()
@@ -252,8 +258,8 @@ with tf.device('/gpu:0'):
 
             #     misleading_targets = np.ones((len(generated_objs),1))
             #     misleading_targets += -1 * np.random.random(misleading_targets.shape)
-            #     d_loss = D3.train_on_batch([raw_data[no].reshape(1,15000),combined_obj[no].reshape(1,24)], np.zeros(1))#np.concatenate([np.zeros(1),np.ones(1)]))
-            #     a_loss = gan.train_on_batch([raw_data[no].reshape(1,15000),np.array(raw_labels[no]).reshape(1,24)],np.zeros(1))
+            #     d_loss = D3.train_on_batch([raw_data[no].reshape(1,6*h*w*channels),combined_obj[no].reshape(1,24)], np.zeros(1))#np.concatenate([np.zeros(1),np.ones(1)]))
+            #     a_loss = gan.train_on_batch([raw_data[no].reshape(1,6*h*w*channels),np.array(raw_labels[no]).reshape(1,24)],np.zeros(1))
 
 
 
@@ -272,7 +278,7 @@ with tf.device('/gpu:0'):
     f = open("final_out.obj","w+")
     f.write("o Cube\n")
     f.close()
-    cindex = 15000
+    cindex = 6*h*w*channels
     ticker = 0
     f = open("final_out.obj","a+")
     while ticker < 8:
