@@ -5,25 +5,11 @@ import numpy as np
 import os, sys, time
 from tensorflow.keras.preprocessing import image
 
-# h,w must be divisible by 4 (for convolutions)
+# h,w must be divisible by 4
 h = 50
 w = 50
 channels = 1
-
-# larger batch size exponentially improves GAN training...
-# but I dont have a supercomputer so it has to be kept relatively small
-# so my 8GB of ram can handle it
-BATCH_SIZE = 12
-
 with tf.device('/gpu:0'):
-
-
-    def merge(a,b):
-        global BATCH_SIZE
-        raw_data = np.reshape(a, (BATCH_SIZE,6*w*h*channels))
-        raw_labels = np.reshape(b,(BATCH_SIZE,8*3))
-        raw_out = np.concatenate([raw_labels,raw_data],axis=-1)
-        return raw_out
 
     def Conv1DTranspose(input_tensor, filters, kernel_size, strides=2, padding='same'):
         """
@@ -54,17 +40,20 @@ with tf.device('/gpu:0'):
 
         global h,w,channels
         a_input = layers.Input(shape=(6,w,h,channels))
-        y = layers.Flatten()(a_input)
-        x = layers.Dense(w*h*channels/4)(y)
+        x = layers.Flatten()(a_input)
+        x = layers.Dense(w*h*channels/4)(x)
         x = layers.BatchNormalization()(x)
         x = layers.Reshape((int(w/2),int(h/2),channels))(x)
         x = layers.Conv2D(32,(2,2),activation="relu")(x)
         x = layers.LeakyReLU(alpha=0.1)(x)
         x = layers.Conv2D(32,(3,3),activation="relu")(x)
         x = layers.LeakyReLU(alpha=0.1)(x)
+        x = layers.Conv2D(32,(3,3),activation="relu")(x)
+        x = layers.LeakyReLU(alpha=0.1)(x)
         x = layers.Flatten()(x)
         x = layers.Dense(24)(x)
-        model = tf.keras.models.Model(a_input,tf.concat([x,y],-1))
+        x = layers.Reshape((8,3))(x)
+        model = tf.keras.models.Model(a_input,x)
         return model
 
 
@@ -78,13 +67,13 @@ with tf.device('/gpu:0'):
     def model_D3():
         global h,w,channels
     #     a_input = layers.Input(shape=(6,w,h,channels))
-    #     a = layers.Conv3D(32, (2,2,2), activation="relu")(a_input)
+    #    # a = layers.Conv3D(32, (2,2,2), activation="relu")(a_input)
     #     a = layers.Flatten()(a_input)
     #     a = layers.Dense(128)(a)
     #     a = tf.keras.models.Model(a_input,a)
 
     #     b_input = layers.Input(shape=(8,3))
-    #     b = layers.Conv1D(64,(1),1)(b_input)
+    #    # b = layers.Conv1D(64,(1),1)(b_input)
     #     b = layers.Flatten()(b_input)
     #     b = layers.Dense(128)(b)
     #     b = tf.keras.models.Model(b_input,b)
@@ -98,14 +87,9 @@ with tf.device('/gpu:0'):
         # zm = layers.Dense(1, activation="sigmoid")(zm)
         
         # model = tf.keras.models.Model([z_input,z2_input],zm)
-        a_input = layers.Input(shape=(((6*w*h*channels)+24,)))
-        b = a_input[6*w*h*channels:]
-        a = a_input[:6*w*h*channels]
-        a = layers.Dense(128, activation="relu")(a)
-        b = layers.Dense(128, activation="relu")(b)
-        a = tf.concat([a,b],0)
-        a = layers.Dropout(0.05)(a)
-        a = layers.Flatten()(a)
+        a_input = layers.Input(shape=(8,3))
+        a = layers.Flatten()(a_input)
+        a = layers.Dense(24)(a)
         a = layers.Dense(1, activation = "sigmoid")(a)
         model = tf.keras.models.Model(a_input,a)
         return model
@@ -128,11 +112,11 @@ with tf.device('/gpu:0'):
     D3 = model_D3()
     D3.compile(optimizer=d_optimizer,loss="binary_crossentropy")
     D1_input = tf.keras.Input(shape=(6,w,h,channels))
-    D2_input = tf.keras.Input(shape=((8,3)))
+    D2_input = tf.keras.Input(shape=(8,3))
     # -- #
 
     gan_input = tf.keras.Input(shape=(6,w,h,channels))
-    gan_output = D3(vertex_model(gan_input))   
+    gan_output = D3(vertex_model(gan_input))
     gan = tf.keras.models.Model(gan_input,gan_output)
     gan_optimizer = tf.keras.optimizers.Adam(lr=0.0002, clipvalue=1.0, decay=1e-8,beta_1=0.5)
     gan.compile(gan_optimizer,loss="binary_crossentropy")
@@ -165,6 +149,11 @@ with tf.device('/gpu:0'):
     raw_data = []
     raw_labels = []
 
+
+    # larger batch size exponentially improves GAN training...
+    # but I dont have a supercomputer so it has to be kept relatively small
+    # so my 8GB of ram can handle it
+    BATCH_SIZE = 12
     current_index = 0
 
     def update_batch():
@@ -183,17 +172,13 @@ with tf.device('/gpu:0'):
                 objdir = [data_folder+i+"/"+p for p in os.listdir(data_folder+i) if p.split(".")[1] == "obj"]
                 obj = parse(objdir[0])
                 raw_labels.append(obj)
-
         raw_data = np.reshape(raw_data, (BATCH_SIZE,6,h,w,channels))
-        print(raw_data[0])
         if(current_index + BATCH_SIZE >= len(os.listdir(data_folder))):
             current_index = 0
         else: current_index += BATCH_SIZE
 
     update_batch()
-
-    raw_merged = merge(raw_data, raw_labels)
-
+    print(raw_labels)
     # Actual training process:
 
     training = input("Perform training? y/n :")
@@ -216,12 +201,10 @@ with tf.device('/gpu:0'):
                     # Save current predictions of G
                     f = open(out_str,"w+")
                     f.write("o Cube\n")
-                    cindex = 6*h*w*channels
-                    f = open(out_str,"a+")
-                    out = np.array(out)
-                    input()
-                    print("v {0} {1} {2}\n".format(out[0][cindex],out[0][cindex+1],out[0][cindex+2]))
-                    f.write("v {0} {1} {2}\n".format(out[0][cindex],out[0][cindex+1],out[0][cindex+2]))
+                    for x in out[0][0:]:
+                        f = open(out_str,"a+")
+                        print("v {0} {1} {2}\n".format(x[0],x[1],x[2]))
+                        f.write("v {0} {1} {2}\n".format(x[0],x[1],x[2]))
 
 
                 #... and train for another epoch
@@ -229,7 +212,7 @@ with tf.device('/gpu:0'):
                 # right now all data is trained every batch which is an absolutely
                 # awful idea
                 generated_objs = vertex_model.predict(raw_data, steps=1)
-                combined_obj = np.concatenate([generated_objs,raw_merged])
+                combined_obj = np.concatenate([generated_objs,raw_labels])
 
                 misleading_targets = np.ones((len(generated_objs),1))
                 misleading_targets += -1 * np.random.random(misleading_targets.shape)
@@ -239,6 +222,8 @@ with tf.device('/gpu:0'):
 
                 history.append([d_loss,a_loss])
                 os.system("clear")
+                print(vertex_model.predict(np.array(raw_data[0]).reshape((1,6,w,h,channels))))
+                print(raw_labels[0])
                 print("D LOSS: {0}".format(d_loss))
                 print("GAN LOSS: {0}".format(a_loss))
 
@@ -256,8 +241,8 @@ with tf.device('/gpu:0'):
 
             #     misleading_targets = np.ones((len(generated_objs),1))
             #     misleading_targets += -1 * np.random.random(misleading_targets.shape)
-            #     d_loss = D3.train_on_batch([raw_data[no].reshape(1,6*h*w*channels),combined_obj[no].reshape(1,24)], np.zeros(1))#np.concatenate([np.zeros(1),np.ones(1)]))
-            #     a_loss = gan.train_on_batch([raw_data[no].reshape(1,6*h*w*channels),np.array(raw_labels[no]).reshape(1,24)],np.zeros(1))
+            #     d_loss = D3.train_on_batch([raw_data[no].reshape(1,15000),combined_obj[no].reshape(1,24)], np.zeros(1))#np.concatenate([np.zeros(1),np.ones(1)]))
+            #     a_loss = gan.train_on_batch([raw_data[no].reshape(1,15000),np.array(raw_labels[no]).reshape(1,24)],np.zeros(1))
 
 
 
@@ -276,16 +261,13 @@ with tf.device('/gpu:0'):
     f = open("final_out.obj","w+")
     f.write("o Cube\n")
     f.close()
-    cindex = 6*h*w*channels
-    ticker = 0
-    f = open("final_out.obj","a+")
-    while ticker < 8:
-        print("v {0} {1} {2}\n".format(out[0][cindex],out[0][cindex+1],out[0][cindex+2]))
-        f.write("v {0} {1} {2}\n".format(out[0][cindex],out[0][cindex+1],out[0][cindex+2]))
-        cindex+=3
-        ticker+=1
-    f.close()
+    for i in out[0][0:]:
+        f = open("final_out.obj","a+")
+        print("v {0} {1} {2}\n".format(i[0],i[1],i[2]))
+        f.write("v {0} {1} {2}\n".format(i[0],i[1],i[2]))
+        f.close()
 
+    print("HEllO")
     f = open("final_out.obj","a+")
     f.write("""f 1/1/1 5/2/1 7/3/1 3/4/1
 f 4/5/2 3/4/2 7/6/2 8/7/2
