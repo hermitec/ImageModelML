@@ -101,11 +101,9 @@ with tf.device('/gpu:0'):
         a_input = layers.Input(shape=(((6*w*h*channels)+24,)))
         b = a_input[6*w*h*channels:]
         a = a_input[:6*w*h*channels]
-        print(a)
-        input()
         a = layers.Dense(128, activation="relu")(a)
-        b = layers.Dense(16, activation="relu")(b)
-        a = tf.concat([a,b],axis=-1)
+        b = layers.Dense(128, activation="relu")(b)
+        a = tf.concat([a,b],0)
         a = layers.Dropout(0.05)(a)
         a = layers.Flatten()(a)
         a = layers.Dense(1, activation = "sigmoid")(a)
