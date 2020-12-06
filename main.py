@@ -11,6 +11,26 @@ w = 50
 channels = 1
 with tf.device('/gpu:0'):
 
+    class Model:
+        
+        def __init__(self, input_shape, output_shape):
+            self.input_dim = input_shape
+            self.output_dim = output_shape
+            self.model_object = None
+        
+        def chainConv2D(self, x, chains, res=32, stride=2, alpha=0.1):
+            for i in range(chains):
+                x = layers.Conv2D(res,(stride,stride),activation="relu")(x)
+                x = layers.LeakyReLU(alpha=alpha)(x)
+            return x
+        
+    class GAN(Model):
+
+        def __init__(self, input_shape, output_shape, generator, discriminator):
+            super().__init__()
+            self.G = generator
+            self.D = discriminator
+            
     def Conv1DTranspose(input_tensor, filters, kernel_size, strides=2, padding='same'):
         """
             input_tensor: tensor, with the shape (batch_size, time_steps, dims)
