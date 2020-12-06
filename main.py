@@ -11,26 +11,66 @@ w = 50
 channels = 1
 with tf.device('/gpu:0'):
 
+    def passLayer(input_tensor):
+        return input_tensor
     class Model:
         
         def __init__(self, input_shape, output_shape):
             self.input_dim = input_shape
             self.output_dim = output_shape
-            self.model_object = None
+            self.x = None
+            self.input_layer = None
+    
+        def initModel(self):
+            self.input_layer = layers.Input(shape=self.input_dim)
+            self.x = passLayer(self.input_layer)
         
-        def chainConv2D(self, x, chains, res=32, stride=2, alpha=0.1):
+        def finishModel(self):
+            self.x = tf.keras.models.Model(self.input_layer,self.x)
+
+        def addDense(self, x, res=32, chains=1):
             for i in range(chains):
-                x = layers.Conv2D(res,(stride,stride),activation="relu")(x)
+                x = layers.Dense(res)(x)
+            return x
+
+        def addConv2D(self, x, chains=1, res=32, stride=2, activation="relu", alpha=0.1):
+            for i in range(chains):
+                x = layers.Conv2D(res,(stride,stride),activation=activation)(x)
                 x = layers.LeakyReLU(alpha=alpha)(x)
             return x
         
+        def addFlatten(self, x):
+            x = layers.Flatten()(x)
+            return x
+        
+        def addReshape(self, x, new_shape):
+            x = layers.Reshape(new_shape)(x)
+            return x
+        
+        def addBatchNorm(self, x):
+            x = layers.BatchNormalization()(x)
+            return x
+
+# just testing #
+
+    G = Model((6,h,w,channels),(8,3))
+    G.initModel()
+    G.addFlatten(G.x)
+    G.addDense(G.x,w*h*channels/4)
+    G.addBatchNorm(G.x)
+    G.addConv2D(G.x,chains=3)
+    G.finishModel()
+    print(G.x.output_shape)
+
+# the test works :) #
+
     class GAN(Model):
 
         def __init__(self, input_shape, output_shape, generator, discriminator):
-            super().__init__()
+            super().__init__(input_shape,output_shape)
             self.G = generator
             self.D = discriminator
-            
+
     def Conv1DTranspose(input_tensor, filters, kernel_size, strides=2, padding='same'):
         """
             input_tensor: tensor, with the shape (batch_size, time_steps, dims)
