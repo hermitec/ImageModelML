@@ -3,7 +3,7 @@
         "database" => [
             "host" => "localhost",
             "name" => "login",
-            "user" => "root",
+            "user" => "newuser",
             "password" => "password"
         ]
     ];
