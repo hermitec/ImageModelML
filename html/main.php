@@ -1,7 +1,5 @@
 <?php
 
-    echo var_dump(function_exists('mysqli_connect'));
-    exit()
     session_start();
 
     $badChars = array( '"', "'", "`", ";", "-" );
