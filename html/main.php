@@ -1,7 +1,9 @@
 <?php
 
+    echo var_dump(function_exists('mysqli_connect'));
+    exit()
     session_start();
-    
+
     $badChars = array( '"', "'", "`", ";", "-" );
     $username = str_replace( $badChars, "", $_POST["user"] );
     $password = str_replace( $badChars, "", $_POST["pw"] );

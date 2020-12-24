@@ -1,3 +1,3 @@
 <?php
-    $db = mysqli_connect("127.0.0.1", "newuser", "password", "login" );
+    $db = mysqli_connect("localhost", "newuser", "password", "login" );
 ?>
