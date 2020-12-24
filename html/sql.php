@@ -1,9 +1,3 @@
 <?php
-    $config = include( "config.php" );
-    $db = mysqli_connect("localhost", "newuser", "password", "login" );
-    if (mysqli_connect_errno())
-    {
-    echo "Failed to connect to MySQL: " . mysqli_connect_error();
-    exit();
-    }
+    $db = mysqli_connect("127.0.0.1", "newuser", "password", "login" );
 ?>
