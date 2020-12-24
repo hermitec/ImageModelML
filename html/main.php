@@ -1,9 +1,7 @@
 <?php
-    
+
     session_start();
-    $_SESSION["loggedin"] = 1;
-    echo $_SESSION["loggedin"];
-    exit();
+    
     $badChars = array( '"', "'", "`", ";", "-" );
     $username = str_replace( $badChars, "", $_POST["user"] );
     $password = str_replace( $badChars, "", $_POST["pw"] );
