@@ -1,3 +1,10 @@
+import tensorflow as tf
+tf.test.gpu_device_name()
+from tensorflow.keras import layers, backend
+import numpy as np
+import os, sys, time
+from tensorflow.keras.preprocessing import image
+
 G = None
 D = None
 gan = None

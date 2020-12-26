@@ -12,17 +12,17 @@ channels = 1
 with tf.device('/gpu:0'):
 
     class Model:
-        
+
         def __init__(self, input_shape, output_shape):
             self.input_dim = input_shape
             self.output_dim = output_shape
             self.x = None
             self.input_layer = None
-    
+
         def initModel(self):
             self.input_layer = layers.Input(shape=self.input_dim)
             self.x = self.input_layer
-        
+
         def finishModel(self):
             self.x = tf.keras.models.Model(self.input_layer,self.x)
 
@@ -36,15 +36,15 @@ with tf.device('/gpu:0'):
                 x = layers.Conv2D(res,(stride,stride),activation=activation)(x)
                 x = layers.LeakyReLU(alpha=alpha)(x)
             return x
-        
+
         def addFlatten(self, x):
             x = layers.Flatten()(x)
             return x
-        
+
         def addReshape(self, x, new_shape):
             x = layers.Reshape(new_shape)(x)
             return x
-        
+
         def addBatchNorm(self, x):
             x = layers.BatchNormalization()(x)
             return x
@@ -56,6 +56,13 @@ with tf.device('/gpu:0'):
             super().__init__(input_shape,output_shape)
             self.G = generator
             self.D = discriminator
+
+        def runTrainLoop(self):
+            return
+
+        def predict(self, data):
+            return G.x.predict(np.array(data).reshape((1,6,w,h,channels)))
+
 
     def Conv1DTranspose(input_tensor, filters, kernel_size, strides=2, padding='same'):
         """
@@ -107,6 +114,7 @@ with tf.device('/gpu:0'):
     D.x = D.addDense(D.x,1)
     D.finishModel()
 
+    GAN = GAN((6,h,w,channels), (1), G, D)
     # Training parameters here (learning rate etc.) are an absolute nightmare
     # and the slightest tweak can make or break the learning process
     vertex_optimizer = tf.keras.optimizers.Adam(lr=0.00075, clipvalue=1.0, decay=1e-8,beta_1=0.5)
@@ -133,9 +141,6 @@ with tf.device('/gpu:0'):
 
     # TRAINING PARAMS #
 
-    EPOCHS = int(input("Epochs: "))
-    history = []
-
     checkpoint_dir = './training_checkpoints'
     checkpoint_prefix = os.path.join(checkpoint_dir, "ckpt")
 
@@ -145,16 +150,12 @@ with tf.device('/gpu:0'):
                                     gan=gan)
 
 
-# HELLO
-# DONT FORGET YOU COMMENTED THIS
-# I CAN TELL YOU'RE GOING TO FORGET AND BE CONFUSED WHY IT ISNT LOADING CHECKPOINTS LATER
-# YOU FUCKING COMMENTED IT
-# UNCOMMENT IT
-   # checkpoint.restore(tf.train.latest_checkpoint(checkpoint_dir))
+
+    checkpoint.restore(tf.train.latest_checkpoint(checkpoint_dir))
 
     history = []
-    
-    data_folder = input("Input folder: ")
+
+    data_folder = "./Dataset/"
     raw_data = []
     raw_labels = []
 
@@ -189,9 +190,24 @@ with tf.device('/gpu:0'):
     update_batch()
     print(raw_labels)
     # Actual training process:
+    if "-s" in str(sys.argv):
+        out = []
+        for i in G.x.predict(np.array(raw_data[0]).reshape((1,6,w,h,channels))).tolist():
+            out.append(i)
 
+        f = open("testfile.obj","w+")
+        f.write("o Cube\n")
+        f.close()
+        for i in out[0][0:]:
+            f = open("testfile.obj","a+")
+            print("v {0} {1} {2}\n".format(i[0],i[1],i[2]))
+            f.write("v {0} {1} {2}\n".format(i[0],i[1],i[2]))
+            f.close()
+        sys.exit()
     training = input("Perform training? y/n :")
 
+    EPOCHS = int(input("Epochs: "))
+    
     if training == "y":
 
             for i in range(EPOCHS):
