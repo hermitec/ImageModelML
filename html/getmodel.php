@@ -1,6 +1,6 @@
 <?php
 $file = "./testfile.obj";
-$out = `python3 /main.py -s`;
+$out = `python3 ./main.py -s`;
 
 if (file_exists($file)) {
     header('Content-Description: File Transfer');
