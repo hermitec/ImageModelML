@@ -56,7 +56,7 @@ async function log_in() {
 function model_compute(){
     var success = 0;
     var modelHTTPReq = new XMLHttpRequest();
-    modelHTTPReq.open( "GET", "/getmodel.php", false );
+    modelHTTPReq.open( "POST", "/getmodel.php", false );
     modelHTTPReq.onreadystatechange = function () {
       console.log(this.responseText);
     }
