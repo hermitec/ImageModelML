@@ -67,6 +67,9 @@ async function model_compute(){
         filetype = this.responseText;
     }
     modelHTTPReq.send(  );
+    const modelHTTPReq = new XMLHttpRequest(),
+        method="POST",
+        url="/uploadfile.php"
     modelHTTPReq.setRequestHeader('Content-Description', 'File Transfer');
     modelHTTPReq.setRequestHeader( "Content-Type", "text/plain; charset=UTF-8" );
 }
