@@ -60,13 +60,11 @@ async function model_compute(){
         url="/getmodel.php"
 
         loginHTTPReq.open( method, url, true );
-    loginHTTPReq.setRequestHeader('Content-Description', 'File Transfer');
-    loginHTTPReq.setRequestHeader( "Content-Type", "text/plain; charset=UTF-8" );
     loginHTTPReq.onreadystatechange = function() {
         console.log( this.responseText );
     }
     loginHTTPReq.send(  );
-    downloadURI("localhost/testfile.obj", "file.obj")
+    downloadURI("testfile.obj", "file.obj")
 
 }
 
