@@ -55,21 +55,15 @@ async function log_in() {
 
 async function model_compute(){
     var success = 0;
-    var filetype = "text/plain; charset=UTF-8"
-    const modelHTTPReq = new XMLHttpRequest(),
+    const loginHTTPReq = new XMLHttpRequest(),
         method="POST",
         url="/getmodel.php"
 
-        modelHTTPReq.open( method, url, true );
-
-    modelHTTPReq.onreadystatechange = function() {
+        loginHTTPReq.open( method, url, true );
+    loginHTTPReq.setRequestHeader('Content-Description', 'File Transfer');
+    loginHTTPReq.setRequestHeader( "Content-Type", "text/plain; charset=UTF-8" );
+    loginHTTPReq.onreadystatechange = function() {
         console.log( this.responseText );
-        filetype = this.responseText;
     }
-    modelHTTPReq.send(  );
-    const modelHTTPReq = new XMLHttpRequest(),
-        method="POST",
-        url="/uploadfile.php"
-    modelHTTPReq.setRequestHeader('Content-Description', 'File Transfer');
-    modelHTTPReq.setRequestHeader( "Content-Type", "text/plain; charset=UTF-8" );
+    loginHTTPReq.send(  );
 }
