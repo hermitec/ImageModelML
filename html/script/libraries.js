@@ -55,15 +55,8 @@ async function log_in() {
 
 async function model_compute(){
     var success = 0;
-    const loginHTTPReq = new XMLHttpRequest(),
-        method="POST",
-        url="/getmodel.php"
-
-        loginHTTPReq.open( method, url, true );
-    loginHTTPReq.onreadystatechange = function() {
-        console.log( this.responseText );
-    }
-    loginHTTPReq.send(  );
+    modelHTTPReq.open( "GET", "/getmodel.php", true );
+    modelHTTPReq.send(  );
     downloadURI("testfile.obj", "file.obj")
 
 }
