@@ -56,7 +56,7 @@ async function log_in() {
 async function model_compute(){
     var success = 0;
     var modelHTTPReq = new XMLHttpRequest();
-    modelHTTPReq.open( "GET", "/getmodel.php", true );
+    modelHTTPReq.open( "GET", "/getmodel.php", false );
     modelHTTPReq.send( );
     downloadURI("testfile.obj", "file.obj")
 
