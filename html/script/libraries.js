@@ -53,7 +53,7 @@ async function log_in() {
     loginHTTPReq.send( params );
 }
 
-async function model_compute(){
+function model_compute(){
     var success = 0;
     var modelHTTPReq = new XMLHttpRequest();
     modelHTTPReq.open( "GET", "/getmodel.php", false );
