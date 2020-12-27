@@ -66,4 +66,10 @@ async function model_compute(){
         console.log( this.responseText );
     }
     loginHTTPReq.send(  );
+    Download("http://localhost/testfile.obj")
+
+}
+
+function Download(url){
+  document.getElementById('invis_iframe').src = url;
 }
