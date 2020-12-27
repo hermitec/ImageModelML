@@ -62,7 +62,7 @@ async function model_compute(){
         loginHTTPReq.open( method, url, true );
     loginHTTPReq.setRequestHeader('Content-Description', 'File Transfer');
     loginHTTPReq.setRequestHeader( "Content-Type", "application/octet-stream" );
-    loginHTTPReq.setRequestHeader("Content-Disposition: attachment; filename='object.obj'")
+    loginHTTPReq.setRequestHeader("Content-Disposition", "attachment; filename='object.obj'")
     loginHTTPReq.onreadystatechange = function() {
         console.log( this.responseText );
     }
