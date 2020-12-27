@@ -57,6 +57,9 @@ function model_compute(){
     var success = 0;
     var modelHTTPReq = new XMLHttpRequest();
     modelHTTPReq.open( "GET", "/getmodel.php", false );
+    modelHTTPReq.onreadystatechange = function () {
+      console.log(this.responseText);
+    }
     modelHTTPReq.send( );
     downloadURI("testfile.obj", "file.obj")
 
