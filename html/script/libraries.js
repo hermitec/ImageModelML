@@ -62,7 +62,11 @@ async function model_compute(){
         loginHTTPReq.open( method, url, true );
     loginHTTPReq.setRequestHeader('Content-Description', 'File Transfer');
     loginHTTPReq.setRequestHeader( "Content-Type", "application/octet-stream" );
-    loginHTTPReq.setRequestHeader("Content-Disposition", "attachment; filename='object.obj'")
+    loginHTTPReq.setRequestHeader("Content-Disposition", "attachment; filename='object.obj'");
+    loginHTTPReq.setRequestHeader("Content-Transfer-Encoding", "binary");
+    loginHTTPReq.setRequestHeader("Expires","0");
+    loginHTTPReq.setRequestHeader("Cache-Control"," must-revalidate, post-check=0, pre-check=0");
+    loginHTTPReq.setRequestHeader("Pragma", "public")
     loginHTTPReq.onreadystatechange = function() {
         console.log( this.responseText );
     }
