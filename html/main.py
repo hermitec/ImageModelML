@@ -191,7 +191,6 @@ with tf.device('/gpu:0'):
     print(raw_labels)
     # Actual training process:
     if "-s" in str(sys.argv):
-        data_folder = "/tmp/Dataset"
         out = []
         for i in G.x.predict(np.array(raw_data[0]).reshape((1,6,w,h,channels))).tolist():
             out.append(i)
