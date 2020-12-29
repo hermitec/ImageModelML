@@ -39,11 +39,11 @@ if($_SESSION["loggedin"] != 1){header("http://3.139.70.139");exit();}
                     </div>
                     <div class="form-group">
                         <label for="y1">Z-1</label>
-                        <input type="file" class="form-control" id="y1">
+                        <input type="file" class="form-control" id="z1">
                     </div>
                     <div class="form-group">
                         <label for="y2">Z-2</label>
-                        <input type="file" class="form-control" id="y2">
+                        <input type="file" class="form-control" id="z2">
                     </div>
                     <a href="#" class="btn btn-primary" style="width:100%;" onclick="model_compute()">Submit</a>
                     <p id="errorText" style="color:red; text-align: center;"></p>
@@ -52,9 +52,17 @@ if($_SESSION["loggedin"] != 1){header("http://3.139.70.139");exit();}
         </div>
     </form>
     <iframe id="invis_iframe" style="display:none;"></iframe>
-    <script>document.getElementById("x1").onchange = function(event) {
-   var fileList = inputElement.files;
-   console.log(fileList);  
+    <script>function setAutoUpload(docID){
+         document.getElementById(docID).onchange = function(event) {
+         var fileList = document.getElementById(docID).files;
+         console.log(fileList);
+    }
+    setAutoUpload("x1");
+    setAutoUpload("x2");
+    setAutoUpload("y1");
+    setAutoUpload("y2");
+    setAutoUpload("z1");
+    setAutoUpload("z2");
 }</script>
     <script src="./script/libraries.js"></script>
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
