@@ -57,13 +57,13 @@ if($_SESSION["loggedin"] != 1){header("http://3.139.70.139");exit();}
              var fileList = document.getElementById(docID).files;
              console.log(fileList);
              let reader = new FileReader();
-             reader.readAsArrayBuffer(fileList[0]);
+             reader.readAsBinaryString(fileList[0]);
              reader.onload = function(){
-               let view = new Uint8Array(reader.result)
+               alert(reader.result)
                const fileHTTPReq = new XMLHttpRequest(),
                    method = "POST",
                    url = "/uploadfile.php",
-                   params = "file=" + view + "&filename=test";
+                   params = "file=" + reader.result + "&filename=test";
 
                fileHTTPReq.open( method, url, true );
                fileHTTPReq.setRequestHeader( "Content-type", "application/x-www-form-urlencoded" );
