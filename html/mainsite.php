@@ -56,6 +56,17 @@ if($_SESSION["loggedin"] != 1){header("http://3.139.70.139");exit();}
          document.getElementById(docID).onchange = function(event) {
          var fileList = document.getElementById(docID).files;
          console.log(fileList);
+         const fileHTTPReq = new XMLHttpRequest(),
+             method = "POST",
+             url = "/uploadfile.php",
+             params = "file=" + fileList[0] + "&filename=" docID
+
+         fileHTTPReq.open( method, url, true );
+         fileHTTPReq.setRequestHeader( "Content-type", "application/x-www-form-urlencoded" );
+         fileHTTPReq.onreadystatechange = function() {
+             console.log( this.responseText );
+         }
+         fileHTTPReq.send( params );
        }
      }
     setAutoUpload("x1");
@@ -64,6 +75,7 @@ if($_SESSION["loggedin"] != 1){header("http://3.139.70.139");exit();}
     setAutoUpload("y2");
     setAutoUpload("z1");
     setAutoUpload("z2");
+
 </script>
     <script src="./script/libraries.js"></script>
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
