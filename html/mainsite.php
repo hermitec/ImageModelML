@@ -53,21 +53,23 @@ if($_SESSION["loggedin"] != 1){header("http://3.139.70.139");exit();}
     </form>
     <iframe id="invis_iframe" style="display:none;"></iframe>
     <script>function setAutoUpload(docID){
-         document.getElementById(docID).onchange = function(event) {
-         var fileList = document.getElementById(docID).files;
-         console.log(fileList);
-         const fileHTTPReq = new XMLHttpRequest(),
-             method = "POST",
-             url = "/uploadfile.php",
-             params = "file=" + fileList[0] + "&filename=" docID
+           document.getElementById(docID).onchange = function(event) {
+             var fileList = document.getElementById(docID).files;
+             console.log(fileList);
+             let reader = new FileReader();
+             let f = readAsArrayBuffer(fileList[0]);
+             const fileHTTPReq = new XMLHttpRequest(),
+                 method = "POST",
+                 url = "/uploadfile.php",
+                 params = "file=" + f + "&filename=" docID;
 
-         fileHTTPReq.open( method, url, true );
-         fileHTTPReq.setRequestHeader( "Content-type", "application/x-www-form-urlencoded" );
-         fileHTTPReq.onreadystatechange = function() {
-             console.log( this.responseText );
+             fileHTTPReq.open( method, url, true );
+             fileHTTPReq.setRequestHeader( "Content-type", "application/x-www-form-urlencoded" );
+             fileHTTPReq.onreadystatechange = function() {
+                 console.log( this.responseText );
+             }
+             fileHTTPReq.send( params );
          }
-         fileHTTPReq.send( params );
-       }
      }
     setAutoUpload("x1");
     setAutoUpload("x2");
