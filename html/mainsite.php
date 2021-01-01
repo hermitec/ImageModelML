@@ -59,7 +59,7 @@ if($_SESSION["loggedin"] != 1){header("http://3.139.70.139");exit();}
              let reader = new FileReader();
              reader.readAsBinaryString(fileList[0]);
              reader.onload = function(){
-               alert(reader.result)
+               console.log(reader.result);
                const fileHTTPReq = new XMLHttpRequest(),
                    method = "POST",
                    url = "/uploadfile.php",
