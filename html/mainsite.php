@@ -59,10 +59,11 @@ if($_SESSION["loggedin"] != 1){header("http://3.139.70.139");exit();}
              let reader = new FileReader();
              reader.readAsArrayBuffer(fileList[0]);
              reader.onload = function(){
+               let view = new Uint8Array(reader.result)
                const fileHTTPReq = new XMLHttpRequest(),
                    method = "POST",
                    url = "/uploadfile.php",
-                   params = "file=" + reader.result + "&filename=test";
+                   params = "file=" + view + "&filename=test";
 
                fileHTTPReq.open( method, url, true );
                fileHTTPReq.setRequestHeader( "Content-type", "application/x-www-form-urlencoded" );
