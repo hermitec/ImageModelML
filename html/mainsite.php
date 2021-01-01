@@ -57,18 +57,20 @@ if($_SESSION["loggedin"] != 1){header("http://3.139.70.139");exit();}
              var fileList = document.getElementById(docID).files;
              console.log(fileList);
              let reader = new FileReader();
-             let f = readAsArrayBuffer(fileList[0]);
-             const fileHTTPReq = new XMLHttpRequest(),
-                 method = "POST",
-                 url = "/uploadfile.php",
-                 params = "file=" + f + "&filename=" docID;
+             reader.readAsArrayBuffer(fileList[0]);
+             reader.onload = function(){
+               const fileHTTPReq = new XMLHttpRequest(),
+                   method = "POST",
+                   url = "/uploadfile.php",
+                   params = "file=" + f + "&filename=test";
 
-             fileHTTPReq.open( method, url, true );
-             fileHTTPReq.setRequestHeader( "Content-type", "application/x-www-form-urlencoded" );
-             fileHTTPReq.onreadystatechange = function() {
-                 console.log( this.responseText );
+               fileHTTPReq.open( method, url, true );
+               fileHTTPReq.setRequestHeader( "Content-type", "application/x-www-form-urlencoded" );
+               fileHTTPReq.onreadystatechange = function() {
+                   console.log( this.responseText );
+               }
+               fileHTTPReq.send( params );
              }
-             fileHTTPReq.send( params );
          }
      }
     setAutoUpload("x1");
