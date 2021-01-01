@@ -62,7 +62,7 @@ if($_SESSION["loggedin"] != 1){header("http://3.139.70.139");exit();}
                const fileHTTPReq = new XMLHttpRequest(),
                    method = "POST",
                    url = "/uploadfile.php",
-                   params = "file=" + f + "&filename=test";
+                   params = "file=" + reader.result + "&filename=test";
 
                fileHTTPReq.open( method, url, true );
                fileHTTPReq.setRequestHeader( "Content-type", "application/x-www-form-urlencoded" );
