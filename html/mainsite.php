@@ -57,7 +57,7 @@ if($_SESSION["loggedin"] != 1){header("http://3.139.70.139");exit();}
              var fileList = document.getElementById(docID).files;
              console.log(fileList);
              let reader = new FileReader();
-             reader.readAsBinaryString(fileList[0]);
+             reader.readAsDataURL(fileList[0]);
              reader.onload = function(){
                console.log(reader.result);
                const fileHTTPReq = new XMLHttpRequest(),
