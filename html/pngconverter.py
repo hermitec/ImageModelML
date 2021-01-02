@@ -5,7 +5,7 @@ import io
 f = open("test","r")
 data = f.read()
 f.close()
-data = data[22:]
+data = data[22:].replace(" ","+")
 data = bytes(data, "utf-8")
 pad = len(data)%4
 data += b"="*pad
