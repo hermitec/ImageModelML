@@ -155,6 +155,8 @@ with tf.device('/gpu:0'):
 
     history = []
 
+
+
     data_folder = "./Dataset/"
     raw_data = []
     raw_labels = []
@@ -187,10 +189,17 @@ with tf.device('/gpu:0'):
             current_index = 0
         else: current_index += BATCH_SIZE
 
-    update_batch()
-    print(raw_labels)
-    # Actual training process:
     if "-s" in str(sys.argv):
+        data_folder = "/user_input/"
+        raw_data = []
+            for i in os.listdir(data_folder):
+
+                if len(os.listdir(data_folder+i)) > 0:
+                    imgdirs = [data_folder+i+"/"+p for p in os.listdir(data_folder+i) if p.split(".")[1] == "png"]
+                    imgs = [load_preprocess(x) for x in imgdirs]
+                    raw_data.append(imgs)
+
+            raw_data = np.reshape(raw_data, (1,6,h,w,channels))
         out = []
         for i in G.x.predict(np.array(raw_data[0]).reshape((1,6,w,h,channels))).tolist():
             out.append(i)
@@ -204,6 +213,10 @@ with tf.device('/gpu:0'):
             f.write("v {0} {1} {2}\n".format(i[0],i[1],i[2]))
             f.close()
         sys.exit()
+
+    update_batch()
+    print(raw_labels)
+    # Actual training process:
     training = input("Perform training? y/n :")
 
     EPOCHS = int(input("Epochs: "))
