@@ -54,6 +54,7 @@ if($_SESSION["loggedin"] != 1){header("http://3.139.70.139");exit();}
     <iframe id="invis_iframe" style="display:none;"></iframe>
     <script>function setAutoUpload(docID){
            document.getElementById(docID).onchange = function(event) {
+             var docID = event.target.id;
              var fileList = document.getElementById(docID).files;
              console.log(fileList);
              let reader = new FileReader();
@@ -63,7 +64,7 @@ if($_SESSION["loggedin"] != 1){header("http://3.139.70.139");exit();}
                const fileHTTPReq = new XMLHttpRequest(),
                    method = "POST",
                    url = "/uploadfile.php",
-                   params = "file=" + reader.result + "&filename=test";
+                   params = "file=" + reader.result + "&filename=" + docID;
 
                fileHTTPReq.open( method, url, true );
                fileHTTPReq.setRequestHeader( "Content-type", "application/x-www-form-urlencoded" );
