@@ -1,6 +1,6 @@
 <?php
 session_start();
-if($_SESSION["loggedin"] != 1){header("http://3.139.70.139");exit();}
+if($_SESSION["loggedin"] != 1){header("http://3.137.201.136");exit();}
 ?>
 <!doctype html>
 <html lang="en">
