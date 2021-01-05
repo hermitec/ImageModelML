@@ -47,6 +47,8 @@ with tf.device('/gpu:0'):
 
         def addDropout(self, x, alpha=0.1):
             x = layers.Dropout(alpha)(x)
+            return x
+            
         def addBatchNorm(self, x):
             x = layers.BatchNormalization()(x)
             return x
