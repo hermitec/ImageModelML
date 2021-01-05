@@ -45,6 +45,8 @@ with tf.device('/gpu:0'):
             x = layers.Reshape(new_shape)(x)
             return x
 
+        def addDropout(self, x, alpha=0.1):
+            x = layers.Dropout(alpha)(x)
         def addBatchNorm(self, x):
             x = layers.BatchNormalization()(x)
             return x
@@ -110,7 +112,9 @@ with tf.device('/gpu:0'):
     D = Model((8,3),(1))
     D.initModel()
     D.x = D.addFlatten(D.x)
-    D.x = D.addDense(D.x,32)
+    D.x = D.addDense(D.x,16)
+    D.x = D.addDropout(D.x, alpha=0.15)
+    D.x = D.addDense(D.x,16)
     D.x = D.addDense(D.x,1)
     D.finishModel()
 
@@ -165,7 +169,7 @@ with tf.device('/gpu:0'):
     # larger batch size exponentially improves GAN training...
     # but I dont have a supercomputer so it has to be kept relatively small
     # so my 8GB of ram can handle it
-    BATCH_SIZE = 12
+    BATCH_SIZE = 15
     current_index = 0
 
     def update_batch():
