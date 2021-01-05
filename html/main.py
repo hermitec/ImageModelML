@@ -192,14 +192,14 @@ with tf.device('/gpu:0'):
     if "-s" in str(sys.argv):
         data_folder = "/user_input/"
         raw_data = []
-            for i in os.listdir(data_folder):
+        for i in os.listdir(data_folder):
 
-                if len(os.listdir(data_folder+i)) > 0:
-                    imgdirs = [data_folder+i+"/"+p for p in os.listdir(data_folder+i) if p.split(".")[1] == "png"]
-                    imgs = [load_preprocess(x) for x in imgdirs]
-                    raw_data.append(imgs)
+            if len(os.listdir(data_folder+i)) > 0:
+                imgdirs = [data_folder+i+"/"+p for p in os.listdir(data_folder+i) if p.split(".")[1] == "png"]
+                imgs = [load_preprocess(x) for x in imgdirs]
+                raw_data.append(imgs)
 
-            raw_data = np.reshape(raw_data, (1,6,h,w,channels))
+        raw_data = np.reshape(raw_data, (1,6,h,w,channels))
         out = []
         for i in G.x.predict(np.array(raw_data[0]).reshape((1,6,w,h,channels))).tolist():
             out.append(i)
