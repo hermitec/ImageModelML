@@ -70,6 +70,9 @@ if($_SESSION["loggedin"] != 1){header("http://3.137.201.136");exit();}
                fileHTTPReq.setRequestHeader( "Content-type", "application/x-www-form-urlencoded" );
                fileHTTPReq.onreadystatechange = function() {
                    console.log( this.responseText );
+                   if (this.responseText == "ERROR_NOTSQUARE"){
+                     document.getElementById("errorText").text = "Your last input was not square! The model only accepts square images."
+                   }
                }
                fileHTTPReq.send( params );
              }
