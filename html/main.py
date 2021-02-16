@@ -123,10 +123,10 @@ with tf.device('/gpu:0'):
     def new_d():
         input_layer = layers.Input(shape=(8,3))
         x = layers.Flatten()(input_layer)
-        x = layers.Dense(16)(x)
+        x = layers.Dense(128)(x)
         second_input = layers.Input(shape=(6,h,w,channels))
         y = layers.Flatten()(second_input)
-        y = layers.Dense(16)(y)
+        y = layers.Dense(128)(y)
         z = layers.concatenate(([x,y]))
         z = layers.Dense(1, activation = "sigmoid")(x)
         z = tf.keras.models.Model([input_layer,second_input],z)
@@ -316,18 +316,13 @@ with tf.device('/gpu:0'):
                 f = open("graph_raw.txt","a+")
                 f.write(l)
 
-    f = open("final_out.obj","a+")
-    f.write("""f 1/1/1 5/2/1 7/3/1 3/4/1
-f 4/5/2 3/4/2 7/6/2 8/7/2
-f 8/8/3 7/9/3 5/10/3 6/11/3
-f 6/12/4 2/13/4 4/5/4 8/14/4
-f 2/13/5 1/1/5 3/4/5 4/5/5
-f 6/11/6 5/10/6 1/1/6 2/13/6""")
+    f = open("out.obj")
+    out = []
     for i in G.x.predict(np.array(raw_data[0]).reshape((1,6,w,h,channels))).tolist():
         out.append(i)
 
     print(out)
-    f = open("final_out.obj","w+")
+    f = open("out.obj","w+")
     f.write("o Cube\n")
     f.close()
     for i in out[0][0:]:
@@ -337,7 +332,7 @@ f 6/11/6 5/10/6 1/1/6 2/13/6""")
         f.close()
 
     print("HEllO")
-    f = open("final_out.obj","a+")
+    f = open("out.obj","a+")
     f.write("""f 1/1/1 5/2/1 7/3/1 3/4/1
 f 4/5/2 3/4/2 7/6/2 8/7/2
 f 8/8/3 7/9/3 5/10/3 6/11/3
