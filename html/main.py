@@ -127,14 +127,15 @@ with tf.device('/gpu:0'):
         second_input = layers.Input(shape=(6,h,w,channels))
         y = layers.Flatten()(second_input)
         y = layers.Dense(16)(y)
-        x = layers.Concatenate()([x,y])
-        x = layers.Dense(1, activation = "sigmoid")(x)
-        x = tf.keras.models.Model([input_layer,second_input],x)
+        z = layers.concatenate(([x,y]))
+        z = layers.Dense(1, activation = "sigmoid")(x)
+        z = tf.keras.models.Model([input_layer,second_input],z)
         
-        return x
+        return z
 
     D.x = new_d()
-        
+    D.x.summary()
+    input()
     GAN = GAN([(6,h,w,channels),(8,3)], (1), G, D)
     # Training parameters here (learning rate etc.) are an absolute nightmare
     # and the slightest tweak can make or break the learning process
@@ -148,11 +149,12 @@ with tf.device('/gpu:0'):
 
     gan_input = tf.keras.Input(shape=(6,w,h,channels))
     snd_input = tf.keras.Input(shape=(6,h,w,channels))
-    gan_output = D.x([G.x(gan_input), snd_input])
-    gan = tf.keras.models.Model([gan_input,snd_input],gan_output)
+    gan_output = D.x([G.x(snd_input), snd_input])
+    gan = tf.keras.models.Model([gan_input, snd_input],gan_output)
     gan_optimizer = tf.keras.optimizers.Adam(lr=0.0002, clipvalue=1.0, decay=1e-8,beta_1=0.5)
     gan.compile(gan_optimizer,loss="binary_crossentropy")
-
+    gan.summary()
+    input()
     def parse(obj_file):
         obj = open(obj_file,"r").readlines()
         parsed = []
@@ -279,7 +281,7 @@ with tf.device('/gpu:0'):
                 misleading_targets += -1 * np.random.random(misleading_targets.shape)
 
                 d_loss = D.x.train_on_batch([combined_obj,x2], np.concatenate([np.zeros((len(raw_labels))),np.ones((len(raw_labels)))]))
-                a_loss = gan.train_on_batch(raw_data,misleading_targets)
+                a_loss = gan.train_on_batch([raw_data, raw_data],misleading_targets)
 
                 history.append([d_loss,a_loss])
                 os.system("clear")
