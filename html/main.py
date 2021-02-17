@@ -6,8 +6,8 @@ import os, sys, time
 from tensorflow.keras.preprocessing import image
 
 # h,w must be divisible by 4
-h = 50
-w = 50
+h = 48
+w = 48
 channels = 1
 with tf.device('/gpu:0'):
 
@@ -31,7 +31,7 @@ with tf.device('/gpu:0'):
                 x = layers.Dense(res)(x)
             return x
 
-        def addConv2D(self, x, chains=1, res=32, stride=2, activation="relu", alpha=0.1):
+        def addConv2D(self, x, chains=1, res=64, stride=2, activation="relu", alpha=0.1):
             for i in range(chains):
                 x = layers.Conv2D(res,(stride,stride),activation=activation)(x)
                 x = layers.LeakyReLU(alpha=alpha)(x)
@@ -123,11 +123,17 @@ with tf.device('/gpu:0'):
     def new_d():
         input_layer = layers.Input(shape=(8,3))
         x = layers.Flatten()(input_layer)
-        x = layers.Dense(128)(x)
+        x = layers.Dense(8*3*16)(x)
+        x = layers.Reshape((8,3,16))(x)
+        x = layers.Conv2D(32,(2,2))(x)
+        x = layers.Flatten()(x)
+        x = layers.Dense(64)(x)
         second_input = layers.Input(shape=(6,h,w,channels))
-        y = layers.Flatten()(second_input)
+        y = layers.Conv3D(32,(2,2,2))(second_input)
+        y = layers.Flatten()(y)
         y = layers.Dense(128)(y)
         z = layers.concatenate(([x,y]))
+        z = layers.Dropout(0.05)(z)
         z = layers.Dense(1, activation = "sigmoid")(x)
         z = tf.keras.models.Model([input_layer,second_input],z)
         
@@ -189,7 +195,7 @@ with tf.device('/gpu:0'):
     # larger batch size exponentially improves GAN training...
     # but I dont have a supercomputer so it has to be kept relatively small
     # so my 8GB of ram can handle it
-    BATCH_SIZE = 15
+    BATCH_SIZE = 16
     current_index = 0
 
     def update_batch():
@@ -249,7 +255,7 @@ with tf.device('/gpu:0'):
 
             for i in range(EPOCHS):
 
-                if i % 100 == 0:
+                if i % 500 == 0:
 
                     # Save progress
                     checkpoint.save(file_prefix = checkpoint_prefix)
