@@ -6,8 +6,8 @@ import os, sys, time
 from tensorflow.keras.preprocessing import image
 
 # h,w must be divisible by 4
-h = 48
-w = 48
+h = 50
+w = 50
 channels = 1
 with tf.device('/gpu:0'):
 
@@ -31,9 +31,15 @@ with tf.device('/gpu:0'):
                 x = layers.Dense(res)(x)
             return x
 
-        def addConv2D(self, x, chains=1, res=64, stride=2, activation="relu", alpha=0.1):
+        def addConv2D(self, x, chains=1, res=16, alpha=0.1):
             for i in range(chains):
-                x = layers.Conv2D(res,(stride,stride),activation=activation)(x)
+                x = layers.Conv2D(res, 5, padding="same")(x)
+                x = layers.LeakyReLU(alpha=alpha)(x)
+            return x
+
+        def addConv2DTranspose(self, x, chains=2, res=16, alpha=0.1):
+            for i in range(chains):
+                x = layers.Conv2DTranspose(res, 4, strides=2, padding="same")(x)
                 x = layers.LeakyReLU(alpha=alpha)(x)
             return x
 
@@ -103,7 +109,9 @@ with tf.device('/gpu:0'):
     G.x = G.addDense(G.x,(w*h*channels)/4)
     G.x = G.addBatchNorm(G.x)
     G.x = G.addReshape(G.x, (int(w/2), int(h/2), channels))
-    G.x = G.addConv2D(G.x,chains=3)
+    G.x = G.addConv2D(G.x,chains=1)
+    G.x = G.addConv2DTranspose(G.x, chains=1)
+    G.x = G.addConv2D(G.x,chains=1)
     G.x = G.addFlatten(G.x)
     G.x = G.addDense(G.x,24)
     G.x = G.addReshape(G.x, (8,3))
@@ -123,15 +131,15 @@ with tf.device('/gpu:0'):
     def new_d():
         input_layer = layers.Input(shape=(8,3))
         x = layers.Flatten()(input_layer)
-        x = layers.Dense(8*3*16)(x)
-        x = layers.Reshape((8,3,16))(x)
+        x = layers.Dense(8*2*16)(x)
+        x = layers.Reshape((8,2,16))(x)
         x = layers.Conv2D(32,(2,2))(x)
         x = layers.Flatten()(x)
         x = layers.Dense(64)(x)
         second_input = layers.Input(shape=(6,h,w,channels))
         y = layers.Conv3D(32,(2,2,2))(second_input)
         y = layers.Flatten()(y)
-        y = layers.Dense(128)(y)
+        y = layers.Dense(64)(y)
         z = layers.concatenate(([x,y]))
         z = layers.Dropout(0.05)(z)
         z = layers.Dense(1, activation = "sigmoid")(x)
@@ -141,7 +149,6 @@ with tf.device('/gpu:0'):
 
     D.x = new_d()
     D.x.summary()
-    input()
     GAN = GAN([(6,h,w,channels),(8,3)], (1), G, D)
     # Training parameters here (learning rate etc.) are an absolute nightmare
     # and the slightest tweak can make or break the learning process
@@ -157,10 +164,9 @@ with tf.device('/gpu:0'):
     snd_input = tf.keras.Input(shape=(6,h,w,channels))
     gan_output = D.x([G.x(snd_input), snd_input])
     gan = tf.keras.models.Model([gan_input, snd_input],gan_output)
-    gan_optimizer = tf.keras.optimizers.Adam(lr=0.0002, clipvalue=1.0, decay=1e-8,beta_1=0.5)
+    gan_optimizer = tf.keras.optimizers.Adam(lr=0.0004, clipvalue=1.0, decay=1e-8,beta_1=0.5)
     gan.compile(gan_optimizer,loss="binary_crossentropy")
     gan.summary()
-    input()
     def parse(obj_file):
         obj = open(obj_file,"r").readlines()
         parsed = []
@@ -235,12 +241,9 @@ with tf.device('/gpu:0'):
             f = open("testfile.obj","a+")
             print("v {0} {1} {2}\n".format(i[0],i[1],i[2]))
             f.write("v {0} {1} {2}\n".format(i[0],i[1],i[2]))
-        f.write("""f 1/1/1 5/2/1 7/3/1 3/4/1
-        f 4/5/2 3/4/2 7/6/2 8/7/2
-        f 8/8/3 7/9/3 5/10/3 6/11/3
-        f 6/12/4 2/13/4 4/5/4 8/14/4
-        f 2/13/5 1/1/5 3/4/5 4/5/5
-        f 6/11/6 5/10/6 1/1/6 2/13/6""")
+            f.close()
+        f = open("testfile.obj", "a+")
+        f.write("""f 1/1/1 5/2/1 7/3/1 3/4/1\nf 4/5/2 3/4/2 7/6/2 8/7/2\nf 8/8/3 7/9/3 5/10/3 6/11/3\nf 6/12/4 2/13/4 4/5/4 8/14/4\nf 2/13/5 1/1/5 3/4/5 4/5/5\nf 6/11/6 5/10/6 1/1/6 2/13/6""")
         f.close()
         sys.exit()
 
@@ -255,7 +258,7 @@ with tf.device('/gpu:0'):
 
             for i in range(EPOCHS):
 
-                if i % 500 == 0:
+                if i % 250 == 0:
 
                     # Save progress
                     checkpoint.save(file_prefix = checkpoint_prefix)

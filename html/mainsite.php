@@ -28,7 +28,7 @@ if($_SESSION["loggedin"] != 1){header("http://3.137.201.136");exit();}
                         <label for="password">X-2</label>
                         <input type="file" class="form-control" id="x2" name="x2">
                     </div>
-                    <p id="errorText" style="color:red; text-align: center;"></p>
+
                     <div class="form-group">
                         <label for="y1">Y-1</label>
                         <input type="file" class="form-control" id="y1">
@@ -45,6 +45,7 @@ if($_SESSION["loggedin"] != 1){header("http://3.137.201.136");exit();}
                         <label for="y2">Z-2</label>
                         <input type="file" class="form-control" id="z2">
                     </div>
+                    <p id="errorText" style="color:red; text-align: center;"></p>
                     <a href="#" class="btn btn-primary" style="width:100%;" onclick="model_compute()">Submit</a>
                     <p id="errorText" style="color:red; text-align: center;"></p>
                 </div>
@@ -60,7 +61,7 @@ if($_SESSION["loggedin"] != 1){header("http://3.137.201.136");exit();}
              let reader = new FileReader();
              reader.readAsDataURL(fileList[0]);
              reader.onload = function(){
-               console.log(reader.result);
+               //console.log(reader.result);
                const fileHTTPReq = new XMLHttpRequest(),
                    method = "POST",
                    url = "/uploadfile.php",
@@ -71,7 +72,7 @@ if($_SESSION["loggedin"] != 1){header("http://3.137.201.136");exit();}
                fileHTTPReq.onreadystatechange = function() {
                    console.log( this.responseText );
                    if (this.responseText.includes("ERROR")){
-                     document.getElementById("errorText").innerHTML = "Your last input was not square! The model only accepts square images.";
+                     document.getElementById("errorText").innerHTML = "Your last input was not square! Use square images for best results.";
                    }
                }
                fileHTTPReq.send( params );

@@ -6,12 +6,13 @@ fclose($up);
 
 // I DONT KNOW WHY BUT THIS IS THE ONLY WAY I CAN GET THIS TO WORK
 // IM SO SORRY
-$out = `python3 pngconverter.py x1`;
+$out = `python3 pngconverter.py x1 2>&1`;
 echo $out;
 $out = `python3 pngconverter.py x2`;
 $out = `python3 pngconverter.py y1`;
 $out = `python3 pngconverter.py y2`;
 $out = `python3 pngconverter.py z1`;
 $out = `python3 pngconverter.py z2`;
+echo $out;
 exit();
 ?>
