@@ -97,12 +97,6 @@ with tf.device('/gpu:0'):
         return image
 
 
-# possible new architecture;
-
-# D1 -> Input(images) -> operations -> Some info about image
-# D2 -> Input(vertices) -> operations -> info about vertices in same form as output of D1
-# D -> Input(Output of D1/2) -> operations -> Binary out
-
     G = Model((6,h,w,channels),(8,3))
     G.initModel()
     G.x = G.addFlatten(G.x)
@@ -298,23 +292,6 @@ with tf.device('/gpu:0'):
                 print(raw_labels[0])
                 print("D LOSS: {0}".format(d_loss))
                 print("GAN LOSS: {0}".format(a_loss))
-
-
-            # #update_batch()
-            # for no in range(len(raw_data)):
-            #     #this is awful practice temporary terrible idea forces batchsize = 1
-
-            #     # TODO
-            #     # FIX
-            #     generated_objs = G.predict(raw_data, steps=1)
-            #     combined_obj = np.concatenate([generated_objs,raw_labels])
-            #     #raw_data is raw images
-            #     #raw_labels is raw vertices
-
-            #     misleading_targets = np.ones((len(generated_objs),1))
-            #     misleading_targets += -1 * np.random.random(misleading_targets.shape)
-            #     d_loss = D.train_on_batch([raw_data[no].reshape(1,15000),combined_obj[no].reshape(1,24)], np.zeros(1))#np.concatenate([np.zeros(1),np.ones(1)]))
-            #     a_loss = gan.train_on_batch([raw_data[no].reshape(1,15000),np.array(raw_labels[no]).reshape(1,24)],np.zeros(1))
 
 
 
