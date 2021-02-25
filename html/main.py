@@ -17,11 +17,17 @@ with tf.device('/gpu:0'):
             self.input_dim = input_shape
             self.output_dim = output_shape
             self.x = None
+            self.y = None
             self.input_layer = None
+            self.second_input = None
 
         def initModel(self):
-            self.input_layer = layers.Input(shape=self.input_dim)
+            self.input_layer = layers.Input(shape=self.input_dim[0])
             self.x = self.input_layer
+            if len(self.input_dim) > 1:
+                self.second_input = layers.Input(shape=self.input_dim[1])
+                self.y = self.second_input
+
 
         def finishModel(self):
             self.x = tf.keras.models.Model(self.input_layer,self.x)
@@ -34,6 +40,12 @@ with tf.device('/gpu:0'):
         def addConv2D(self, x, chains=1, res=16, alpha=0.1):
             for i in range(chains):
                 x = layers.Conv2D(res, 5, padding="same")(x)
+                x = layers.LeakyReLU(alpha=alpha)(x)
+            return x
+        
+        def addConv3D(self, x, chains=1, res=16, alpha=0.1):
+            for i in range(chains):
+                x = layers.Conv3D(res, 5, padding="same")(x)
                 x = layers.LeakyReLU(alpha=alpha)(x)
             return x
 
@@ -59,6 +71,8 @@ with tf.device('/gpu:0'):
             x = layers.BatchNormalization()(x)
             return x
 
+        def concat(self):
+            self.x = layers.concatenate([self.x,self.y])
 
     class GAN(Model):
 
@@ -97,7 +111,7 @@ with tf.device('/gpu:0'):
         return image
 
 
-    G = Model((6,h,w,channels),(8,3))
+    G = Model([(6,h,w,channels)],(8,3))
     G.initModel()
     G.x = G.addFlatten(G.x)
     G.x = G.addDense(G.x,(w*h*channels)/4)
@@ -113,14 +127,21 @@ with tf.device('/gpu:0'):
     print(G.x.output_shape)
     print(G.x.summary())
 
-    D = Model((8,3),(1))
-    D.initModel()
-    D.x = D.addFlatten(D.x)
-    D.x = D.addDense(D.x,16)
-    D.x = D.addDropout(D.x, alpha=0.15)
-    D.x = D.addDense(D.x,16)
-    D.x = D.addDense(D.x,1)
-    D.finishModel()
+    #D = Model([(8,3),(6,h,w,channels)],(1))
+    #D.initModel()
+
+    # Discriminator unfortunately moved out of custom OOP architecture
+    # due to time constraints
+
+    #D.x = D.addFlatten(D.x)
+    #D.x = D.addDense(D.x,16)
+    #D.x = D.addDropout(D.x, alpha=0.15)
+    #D.x = D.addDense(D.x,16)
+    #D.y = D.addFlatten(D.y)
+    #D.y = D.addDense(D.y, 16)
+    #D.concat()
+    #D.x = D.addDense(D.x,1)
+    #D.finishModel()
     
     def new_d():
         input_layer = layers.Input(shape=(8,3))
@@ -273,8 +294,7 @@ with tf.device('/gpu:0'):
 
                 #... and train for another epoch
 
-                # right now all data is trained every batch which is an absolutely
-                # awful idea
+                # right now all data is trained every batch
                 generated_objs = G.x.predict(raw_data, steps=1)
                 print(generated_objs.shape)
                 combined_obj = np.concatenate([generated_objs,raw_labels])
@@ -317,7 +337,7 @@ with tf.device('/gpu:0'):
         f.write("v {0} {1} {2}\n".format(i[0],i[1],i[2]))
         f.close()
 
-    print("HEllO")
+    # Cuboids all have the same face connections
     f = open("out.obj","a+")
     f.write("""f 1/1/1 5/2/1 7/3/1 3/4/1
 f 4/5/2 3/4/2 7/6/2 8/7/2
