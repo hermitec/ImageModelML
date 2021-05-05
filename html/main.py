@@ -6,12 +6,19 @@ import os, sys, time
 from tensorflow.keras.preprocessing import image
 
 # h,w must be divisible by 4
-h = 50
-w = 50
+h = 52
+w = 52
 channels = 1
 with tf.device('/gpu:0'):
 
     class Model:
+        
+        # Custom OOP architecture may seem unnecessary when keras
+        # implements it's own in a sense but this makes messing with
+        # parameters and no. of layers far easier, tinkering being something
+        # that will be done *a lot* to make the model as accurate as possible,
+        # as well as standardising things that are not standard in keras but are
+        # for this application (eg. leakyrelu following every convolution layer)
 
         def __init__(self, input_shape, output_shape):
             self.input_dim = input_shape
@@ -80,9 +87,11 @@ with tf.device('/gpu:0'):
             super().__init__(input_shape,output_shape)
             self.G = generator
             self.D = discriminator
-
-        def runTrainLoop(self):
-            return
+        
+        # Single class containing both G and D object allows for theoretically entire
+        # training loop to be run at will, unfortunately this idea is scrapped due to time
+        # constraints but is only ultimately useful for extending the project beyond the scope
+        # of what I hope to accomplish
 
         def predict(self, data):
             return G.x.predict(np.array(data).reshape((1,6,w,h,channels)))
@@ -127,8 +136,8 @@ with tf.device('/gpu:0'):
     print(G.x.output_shape)
     print(G.x.summary())
 
-    #D = Model([(8,3),(6,h,w,channels)],(1))
-    #D.initModel()
+    D = Model([(8,3),(6,h,w,channels)],(1))
+    D.initModel()
 
     # Discriminator unfortunately moved out of custom OOP architecture
     # due to time constraints
@@ -144,6 +153,7 @@ with tf.device('/gpu:0'):
     #D.finishModel()
     
     def new_d():
+        
         input_layer = layers.Input(shape=(8,3))
         x = layers.Flatten()(input_layer)
         x = layers.Dense(8*2*16)(x)
@@ -201,7 +211,7 @@ with tf.device('/gpu:0'):
                                     gan=gan)
 
 
-
+    # Load the model from files
     checkpoint.restore(tf.train.latest_checkpoint(checkpoint_dir))
 
     history = []
